@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Souled Store - India's #1 Pop Culture Merch, Oversized T-Shirts, Hoodies, Tactical Cargos & Streetwear. Exclusive VIP Club Discounts.">
+  <meta name="keywords" content="The Souled Store, TSS Men, Oversized T-Shirts, Marvel Merch, Anime Hoodies, Streetwear India 2026, Virtual Try-On">
+  <title>The Souled Store | Official Merch, Oversized Tees & Streetwear Studio</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23e11b23%22/><text x=%2250%%22 y=%2268%%22 font-size=%2252%22 font-weight=%22900%22 text-anchor=%22middle%22 fill=%22white%22>TSS</text></svg>">
+</head>
+<body>
+
+  <!-- TSS Top Header Utilities Bar (MEN | WOMEN | SNEAKERS & CURRENCY / THEME) -->
+  <div class="tss-gender-top-bar">
+    <div class="container gender-bar-flex">
+      <div class="gender-tabs">
+        <button class="gender-tab-btn active" data-gender="men" onclick="App.switchGender('men')">MEN</button>
+        <button class="gender-tab-btn" data-gender="women" onclick="App.switchGender('women')">WOMEN</button>
+        <button class="gender-tab-btn" data-gender="footwear" onclick="App.switchGender('footwear')">SNEAKERS 👟</button>
+      </div>
+
+      <div class="top-bar-right-actions">
+        <!-- Track Order Quick Link -->
+        <button class="top-nav-link-btn" onclick="App.openTrackOrderModal()">
+          <span>🚚</span> Track Order
+        </button>
+
+        <!-- Currency Selector -->
+        <select class="top-currency-select" onchange="App.setCurrency(this.value)">
+          <option value="INR">🇮🇳 INR (₹)</option>
+          <option value="USD">🇺🇸 USD ($)</option>
+          <option value="EUR">🇪🇺 EUR (€)</option>
+          <option value="GBP">🇬🇧 GBP (£)</option>
+        </select>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" title="Toggle Dark / Light Mode">
+          🌙 Dark
+        </button>
+
+        <span class="free-shipping-tag">📦 Free Express Shipping on ₹999+</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Promo Ticker -->
+  <div class="top-promo-ticker">
+    <span>FLAT ₹200 OFF on your first streetwear drop order above ₹999 • Code: <span class="promo-code-pill">TSS200</span></span>
+  </div>
+
+  <!-- Main TSS Header -->
+  <header class="site-tss-header">
+    <div class="container header-inner">
+      <!-- TSS Logo -->
+      <a href="#hero" class="tss-logo-link">
+        <div class="tss-logo-ghost">👻</div>
+        <div class="tss-logo-text">
+          <span class="tss-logo-main">The Souled Store</span>
+          <span class="tss-logo-sub">OFFICIAL MERCHANDISE</span>
+        </div>
+      </a>
+
+      <!-- Category Navigation Links -->
+      <nav class="tss-nav-menu">
+        <span class="tss-nav-item" onclick="App.filterByCategory('all')">ALL DROPS</span>
+        <span class="tss-nav-item badge-hot-link" onclick="App.filterByCategory('oversized')">🔥 OVERSIZED</span>
+        <span class="tss-nav-item" onclick="App.filterByCategory('hoodies')">HOODIES</span>
+        <span class="tss-nav-item" onclick="App.filterByCategory('bottoms')">CARGOS</span>
+        <span class="tss-nav-item" onclick="App.filterByCategory('jackets')">JACKETS</span>
+        <span class="tss-nav-item" onclick="App.filterByCategory('footwear')">KICKS</span>
+      </nav>
+
+      <!-- TSS Search Box with Live Autocomplete -->
+      <div class="tss-search-container">
+        <span class="tss-search-icon">🔍</span>
+        <input type="text" id="header-search" class="tss-search-input" placeholder="Search anime, marvel, oversized tees..." autocomplete="off">
+        <div class="search-autocomplete-dropdown" id="search-autocomplete-dropdown" style="display:none;"></div>
+      </div>
+
+      <!-- TSS Header Actions -->
+      <div class="tss-header-actions">
+        <!-- Exclusive Club Pill -->
+        <button class="tss-club-vip-pill" onclick="App.toggleClubMembership()" title="Toggle TSS VIP Membership">
+          <span>👑</span>
+          <span id="club-membership-status">JOIN CLUB</span>
+        </button>
+
+        <!-- Wishlist -->
+        <button class="icon-action-btn" onclick="App.openWishlistDrawer()" title="Wishlist">
+          <span>♥</span>
+          <span class="action-counter-badge" id="wishlist-badge-count" style="display:none;">0</span>
+        </button>
+
+        <!-- Shopping Cart -->
+        <button class="icon-action-btn" onclick="App.openCartDrawer()" title="Cart">
+          <span>🛍️</span>
+          <span class="action-counter-badge" id="cart-badge-count" style="display:none;">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Widescreen Drops Slider -->
+  <section class="tss-hero-section" id="hero">
+    <div class="container">
+      <div class="hero-slider-card">
+        <div>
+          <span class="hero-tag-tss">⚡ LATEST 2026 STREETWEAR DROP</span>
+          <h1 class="hero-title-tss">
+            HEAVYWEIGHT <br>
+            <span class="red-accent">OVERSIZED</span> COUTURE
+          </h1>
+          <p class="hero-sub-tss">
+            Ultra-dense 240–420 GSM French Terry cotton, authentic pop-culture anime graphics, and dropped-shoulder silhouettes.
+          </p>
+          <div class="hero-btn-group">
+            <a href="#catalog-section" class="btn-tss-primary">SHOP THE DROP →</a>
+            <a href="#tryon-studio" class="btn-tss-outline">✨ VIRTUAL TRY-ON STUDIO</a>
+          </div>
+        </div>
+
+        <div class="hero-image-wrap">
+          <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80" alt="TSS Heavyweight Streetwear" class="hero-hero-img">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Official Fandom / Pop-Culture Collaboration Strip -->
+  <section class="fandom-strip-section">
+    <div class="container">
+      <div class="section-headline-tss">
+        <h3>SHOP BY OFFICIAL FANDOMS & MERCH</h3>
+      </div>
+      <div class="fandom-pills-flex" id="fandom-strip-container">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories to Explore (TSS Tiles Grid) -->
+  <section class="category-tiles-section">
+    <div class="container">
+      <div class="section-headline-tss">
+        <h3>CATEGORIES TO EXPLORE</h3>
+      </div>
+      <div class="cat-tiles-grid" id="category-tiles-container">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Product Catalog Section -->
+  <section class="catalog-section" id="catalog-section">
+    <div class="container">
+      <!-- Minimalist Bar with Compact Filter Icon Button -->
+      <div class="tss-compact-filter-bar">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <!-- Small Filter Icon Button -->
+          <button class="btn-compact-filter-icon" onclick="App.toggleFilterPopup()">
+            <span class="filter-icon-svg">🎛️</span>
+            <span>FILTERS</span>
+          </button>
+
+          <!-- Quick Category Pills -->
+          <div class="quick-cat-pills-bar">
+            <span class="quick-chip active" data-cat="all" onclick="App.filterByCategory('all')">All</span>
+            <span class="quick-chip" data-cat="oversized" onclick="App.filterByCategory('oversized')">Oversized</span>
+            <span class="quick-chip" data-cat="hoodies" onclick="App.filterByCategory('hoodies')">Hoodies</span>
+            <span class="quick-chip" data-cat="bottoms" onclick="App.filterByCategory('bottoms')">Cargos</span>
+            <span class="quick-chip" data-cat="jackets" onclick="App.filterByCategory('jackets')">Jackets</span>
+            <span class="quick-chip" data-cat="footwear" onclick="App.filterByCategory('footwear')">Sneakers</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="sort-wrapper-top">
+            <span style="font-size:0.8rem; font-weight:800; color:var(--text-secondary);">SORT:</span>
+            <select id="catalog-sort" class="sort-select-top">
+              <option value="featured">Popularity & Drops</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Rated ⭐</option>
+            </select>
+          </div>
+          <span class="results-count-badge" id="results-count">16 ITEMS</span>
+        </div>
+      </div>
+
+      <!-- Compact Filter Popup / Modal Panel -->
+      <div class="filter-popup-overlay" id="filter-popup-overlay" onclick="App.closeFilterPopup()"></div>
+      <div class="filter-popup-card" id="filter-popup-card">
+        <div class="filter-popup-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.2rem;">🎛️</span>
+            <h3 style="font-family:var(--font-heading); font-size:1.1rem; font-weight:900;">FILTER APPAREL</h3>
+          </div>
+          <button class="filter-popup-close" onclick="App.closeFilterPopup()">✕</button>
+        </div>
+
+        <div class="filter-popup-body">
+          <!-- Price Slider -->
+          <div class="filter-popup-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span class="filter-sub-label">Price Range</span>
+              <span id="max-price-val" style="font-weight:900; color:var(--tss-red); font-size:0.9rem;">₹5,000</span>
+            </div>
+            <input type="range" id="price-range-input" style="width:100%; accent-color:var(--tss-red);" min="800" max="5000" step="100" value="5000">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+              <span>₹800</span>
+              <span>₹5,000</span>
+            </div>
+          </div>
+
+          <!-- Sizes -->
+          <div class="filter-popup-group">
+            <span class="filter-sub-label">Select Size</span>
+            <div class="size-pill-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:8px;">
+              <button class="size-pill-tss" onclick="App.filterBySize('XS', this)">XS</button>
+              <button class="size-pill-tss" onclick="App.filterBySize('S', this)">S</button>
+              <button class="size-pill-tss" onclick="App.filterBySize('M', this)">M</button>
+              <button class="size-pill-tss" onclick="App.filterBySize('L', this)">L</button>
+              <button class="size-pill-tss" onclick="App.filterBySize('XL', this)">XL</button>
+              <button class="size-pill-tss" onclick="App.filterBySize('XXL', this)">XXL</button>
+            </div>
+          </div>
+
+          <!-- Fit Quiz Button -->
+          <button class="btn-tss-fit-quiz" onclick="App.closeFilterPopup(); App.openFitQuizModal();">
+            📐 FIND MY EXACT TSS FIT
+          </button>
+        </div>
+
+        <div class="filter-popup-footer">
+          <button class="btn-reset-top" style="flex:1; padding:10px;" onclick="App.resetFilters()">RESET ALL</button>
+          <button class="btn-tss-primary" style="flex:1.5; padding:10px; justify-content:center;" onclick="App.closeFilterPopup()">APPLY</button>
+        </div>
+      </div>
+
+      <!-- Floating Corner Quick Filter Button -->
+      <button class="floating-corner-filter-btn" onclick="App.toggleFilterPopup()" title="Open Filters">
+        <span>🎛️</span>
+        <span class="floating-btn-text">Filters</span>
+      </button>
+
+      <!-- TSS Product Cards Grid -->
+      <div class="products-grid-tss" id="products-grid">
+        <!-- Dynamic via app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- TSS Exclusive VIP Club Banner -->
+  <section class="tss-club-banner-section">
+    <div class="container">
+      <div class="club-feature-card">
+        <div>
+          <span style="background:var(--tss-gold); color:#111; font-weight:900; font-size:0.75rem; padding:3px 10px; border-radius:4px; text-transform:uppercase;">EXCLUSIVE VIP CLUB</span>
+          <h2 class="club-title">Become a Souled Store Member</h2>
+          <p style="color:#d1d5db; font-size:0.95rem;">
+            Save flat ₹200 to ₹600 on every single garment, get 24-hr early access to anime & comic drops, and enjoy unconditional FREE shipping on all orders!
+          </p>
+          <div class="club-benefits-list">
+            <div>👑 <b>Guaranteed Member Pricing</b> on 10,000+ Styles</div>
+            <div>⚡ <b>FREE Express Delivery</b> on every order (No minimum order value)</div>
+            <div>🎟️ <b>Priority Access</b> to Limited Edition Naruto, Jujutsu Kaisen & Marvel drops</div>
+          </div>
+        </div>
+
+        <div style="text-align:center; background:rgba(255,255,255,0.08); padding:24px; border-radius:var(--radius-md); border:1px solid rgba(229,169,60,0.3);">
+          <div style="font-size:0.85rem; color:#d1d5db;">Membership at just</div>
+          <div style="font-family:var(--font-heading); font-size:2.2rem; font-weight:900; color:var(--tss-gold); margin:4px 0;">₹199 / yr</div>
+          <button class="btn-tss-primary" style="width:100%; background:var(--tss-gold); color:#111; font-weight:900;" onclick="App.toggleClubMembership()">
+            ACTIVATE CLUB SAVINGS →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Virtual Try-On Studio (TSS Fitting Room) -->
+  <section class="tryon-section" id="tryon-studio">
+    <div class="container">
+      <div class="section-headline-tss">
+        <span style="color:var(--tss-red); font-weight:800; font-size:0.8rem; letter-spacing:0.08em;">TSS INTERACTIVE STYLIST</span>
+        <h2>VIRTUAL FITTING & OUTFIT MIXER</h2>
+      </div>
+
+      <!-- Avatar Selector Container -->
+      <div id="tryon-avatar-selector-container"></div>
+
+      <div class="tryon-studio-card">
+        <!-- Left: Model Avatar Canvas -->
+        <div class="tryon-avatar-box">
+          <div class="tryon-canvas-wrapper">
+            <img src="https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=900&q=80" id="tryon-visual-main" class="tryon-model-bg" alt="TSS Model">
+            
+            <div class="tryon-overlay-layer">
+              <span class="layer-badge" id="tryon-badge-outer">🧥 Outerwear</span>
+              <span class="layer-badge" id="tryon-badge-top">👕 Topwear</span>
+              <span class="layer-badge" id="tryon-badge-bottom">👖 Bottoms</span>
+            </div>
+          </div>
+
+          <div style="margin-top:18px; text-align:center;">
+            <div style="font-size:0.82rem; color:var(--text-secondary); font-weight:800;">TOTAL OUTFIT BUNDLE</div>
+            <div style="font-family:var(--font-heading); font-size:1.7rem; font-weight:900; color:var(--tss-red);" id="tryon-bundle-price">₹0</div>
+            <div style="font-size:0.8rem; color:#1b8755; font-weight:800; margin-top:2px;" id="tryon-bundle-savings"></div>
+          </div>
+
+          <div style="display:flex; gap:10px; width:100%; margin-top:14px;">
+            <button class="btn-tss-primary" style="flex-grow:1; padding:12px;" id="tryon-add-all-btn">
+              🛍️ ADD ENTIRE LOOK TO BAG
+            </button>
+            <button class="btn-card-add" id="tryon-randomize-btn" title="Shuffle Look">
+              🎲 SHUFFLE
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Layer Slot Controls -->
+        <div class="tryon-controls">
+          <div style="background:var(--tss-red-light); border:1px dashed var(--tss-red); border-radius:var(--radius-sm); padding:14px; display:flex; align-items:center; gap:12px;">
+            <div style="font-size:1.6rem;">🔥</div>
+            <div>
+              <div style="font-size:0.88rem; font-weight:800; color:var(--tss-red);">TSS Streetwear Synergy Score: <span id="ai-synergy-score-val">98/100</span></div>
+              <div style="font-size:0.8rem; color:var(--text-secondary);" id="ai-synergy-text">AI Synergy: Ultra-comfortable boxy streetwear drape with high-density terry blend.</div>
+            </div>
+          </div>
+
+          <div id="tryon-controls-container" style="display:flex; flex-direction:column; gap:16px;">
+            <!-- Rendered via tryon.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TSS Footer -->
+  <footer class="site-footer-tss">
+    <div class="container">
+      <div class="footer-grid-tss">
+        <div>
+          <div class="tss-logo-link" style="margin-bottom:16px;">
+            <div class="tss-logo-ghost">👻</div>
+            <span class="tss-logo-main" style="color:#fff;">The Souled Store</span>
+          </div>
+          <p style="font-size:0.85rem; line-height:1.7; max-width:340px; color:#a2a8b6;">
+            India's largest pop-culture apparel destination for official merchandise, oversized heavyweight tees, cargos, winterwear & accessories.
+          </p>
+          <div style="margin-top:16px; color:#fff; font-weight:800; font-size:0.88rem;">
+            📍 Crafted with passion in Mumbai, India.
+          </div>
+        </div>
+
+        <div class="footer-col-tss">
+          <h4>NEED HELP?</h4>
+          <ul>
+            <li><a href="javascript:void(0)" onclick="App.openTrackOrderModal()">Track Your Order 🚚</a></li>
+            <li><a href="javascript:void(0)" onclick="App.showToast('Easy 7-day hassle free returns!', 'info')">Returns & Exchanges</a></li>
+            <li><a href="javascript:void(0)" onclick="App.showToast('Customer Care: connect@thesouledstore.com', 'info')">FAQs & Support</a></li>
+            <li><a href="javascript:void(0)" onclick="App.toggleClubMembership()">Exclusive VIP Club</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col-tss">
+          <h4>COMPANY</h4>
+          <ul>
+            <li><a href="javascript:void(0)" onclick="App.showToast('The Souled Store is India\'s favorite pop culture brand.', 'info')">About TSS</a></li>
+            <li><a href="javascript:void(0)" onclick="App.showToast('Available in Mumbai, Bengaluru, Delhi & Pune!', 'info')">Retail Stores (50+ Outlets)</a></li>
+            <li><a href="javascript:void(0)">Careers & Culture</a></li>
+            <li><a href="javascript:void(0)">Official Collabs & Licenses</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col-tss">
+          <h4>100% GENUINE</h4>
+          <ul>
+            <li><a href="javascript:void(0)">Official Marvel Licensee</a></li>
+            <li><a href="javascript:void(0)">Official Warner Bros. / DC</a></li>
+            <li><a href="javascript:void(0)">Official Anime / Naruto</a></li>
+            <li><a href="javascript:void(0)">Safe & Encrypted Payments</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-tss">
+        <div>© 2026 The Souled Store Retails Pvt. Ltd. All Rights Reserved.</div>
+        <div>🔒 100% Secure Checkout | COD Available | Instant UPI & Cards</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-in Cart Drawer -->
+  <div class="drawer-backdrop" id="cart-drawer-backdrop" onclick="App.closeCartDrawer()"></div>
+  <aside class="drawer-panel" id="cart-drawer-panel">
+    <div class="drawer-header-tss">
+      <h3 style="font-family:var(--font-heading); font-size:1.1rem; font-weight:900;">MY SHOPPING BAG (<span id="cart-items-count-text">0</span>)</h3>
+      <button style="color:#fff; font-size:1.2rem; font-weight:bold; background:none; border:none; cursor:pointer;" onclick="App.closeCartDrawer()">✕</button>
+    </div>
+
+    <!-- Free Shipping Bar -->
+    <div style="background:var(--tss-red-light); padding:12px 20px; font-size:0.82rem; color:var(--tss-red); font-weight:800; border-bottom:1px solid #fcdada;" id="free-shipping-text">
+      🎉 FREE Shipping Applied on this Order!
+    </div>
+
+    <div class="drawer-body" id="cart-drawer-items">
+      <!-- Dynamic via app.js -->
+    </div>
+
+    <div class="drawer-footer">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.9rem;">
+        <span>Bag Subtotal</span>
+        <span id="cart-subtotal-price" style="font-weight:800;">₹0</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.9rem; color:#1b8755;">
+        <span>Shipping Fee</span>
+        <span style="font-weight:900;">FREE</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-heading); font-size:1.25rem; font-weight:900; color:var(--text-primary); margin-top:10px; padding-top:10px; border-top:1px solid var(--tss-border);">
+        <span>Total Payable</span>
+        <span id="cart-total-price" style="color:var(--tss-red);">₹0</span>
+      </div>
+
+      <button class="btn-tss-primary" style="width:100%; margin-top:14px; padding:15px; font-size:0.95rem; justify-content:center;" onclick="App.openCheckoutModal()">
+        CONTINUE TO CHECKOUT →
+      </button>
+    </div>
+  </aside>
+
+  <!-- Slide-in Wishlist Drawer -->
+  <div class="drawer-backdrop" id="wishlist-drawer-backdrop" onclick="App.closeWishlistDrawer()"></div>
+  <aside class="drawer-panel" id="wishlist-drawer-panel">
+    <div class="drawer-header-tss">
+      <h3 style="font-family:var(--font-heading); font-size:1.1rem; font-weight:900;">MY WISHLIST ♥</h3>
+      <button style="color:#fff; font-size:1.2rem; font-weight:bold; background:none; border:none; cursor:pointer;" onclick="App.closeWishlistDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="wishlist-drawer-items">
+      <!-- Dynamic -->
+    </div>
+  </aside>
+
+  <!-- Quick View Modal -->
+  <div class="modal-backdrop" id="quickview-modal">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="App.closeQuickView()">✕</button>
+      <div id="quickview-body">
+        <!-- Dynamic via App.openQuickView -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Tracking Modal -->
+  <div class="modal-backdrop" id="track-order-modal">
+    <div class="modal-content" style="max-width:550px; padding:32px;">
+      <button class="modal-close-btn" onclick="App.closeTrackOrderModal()">✕</button>
+      <h3 style="font-family:var(--font-heading); font-size:1.4rem; font-weight:900; margin-bottom:6px;">Track Your Package 🚚</h3>
+      <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:18px;">Enter your TSS Order Tracking ID or Mobile Number.</p>
+
+      <form onsubmit="App.trackOrder(event)">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="track-order-input" class="tss-search-input" placeholder="e.g. TSS-842918" required>
+          <button type="submit" class="btn-tss-primary" style="padding:10px 20px;">TRACK</button>
+        </div>
+      </form>
+
+      <div id="track-order-result"></div>
+    </div>
+  </div>
+
+  <!-- TSS Size Finder Quiz Modal -->
+  <div class="modal-backdrop" id="fitquiz-modal">
+    <div class="modal-content" style="max-width: 520px; padding: 32px;">
+      <button class="modal-close-btn" onclick="App.closeFitQuizModal()">✕</button>
+      <h3 style="font-family:var(--font-heading); font-size: 1.45rem; font-weight:900; margin-bottom: 6px;">TSS Fit & Sizing Advisor</h3>
+      <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:18px;">Calculate your ideal oversized drop-shoulder vs regular fit.</p>
+
+      <form onsubmit="App.calculateFitRecommendation(event)">
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:0.82rem; font-weight:800; margin-bottom:4px;">Height (cm or ft)</label>
+          <input type="text" id="quiz-height" class="tss-search-input" placeholder="e.g. 178 cm or 5'10" required>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:0.82rem; font-weight:800; margin-bottom:4px;">Weight (kg)</label>
+          <input type="text" id="quiz-weight" class="tss-search-input" placeholder="e.g. 72 kg" required>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:0.82rem; font-weight:800; margin-bottom:4px;">Fit Style</label>
+          <select id="quiz-fit-pref" class="tss-search-input">
+            <option value="oversized">Oversized Drop-Shoulder (Signature TSS Look)</option>
+            <option value="regular">Regular Classic Tailored Fit</option>
+            <option value="slim">Slim Athletic Fit</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-tss-primary" style="width: 100%; justify-content:center;">
+          CALCULATE PERFECT SIZE →
+        </button>
+      </form>
+
+      <div id="quiz-result-box" style="display:none; margin-top:18px; background:var(--tss-red-light); border:1px solid var(--tss-red); border-radius:var(--radius-sm); padding:16px; text-align:center;">
+        <div style="font-size:0.82rem; color:var(--text-secondary); font-weight:700;">RECOMMENDED TSS SIZE:</div>
+        <div id="quiz-recommended-size" style="font-family:var(--font-heading); font-size:1.8rem; font-weight:900; color:var(--tss-red); margin:4px 0;">Size L</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Express Checkout Modal -->
+  <div class="modal-backdrop" id="checkout-modal">
+    <div class="modal-content" id="checkout-modal-inner" style="max-width:840px; padding:36px;">
+      <button class="modal-close-btn" onclick="App.closeCheckoutModal()">✕</button>
+      <h2 style="font-family:var(--font-heading); font-size: 1.7rem; font-weight:900; margin-bottom: 22px;">Express Checkout</h2>
+      
+      <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:28px;">
+        <form onsubmit="App.processSimulatedOrder(event)">
+          <div style="margin-bottom:12px;">
+            <label style="font-size:0.82rem; font-weight:800; display:block; margin-bottom:4px;">Mobile Number / Email</label>
+            <input type="text" id="checkout-email" class="tss-search-input" placeholder="9876543210 or email@domain.com" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:0.82rem; font-weight:800; display:block; margin-bottom:4px;">Full Name</label>
+            <input type="text" id="checkout-name" class="tss-search-input" placeholder="Aarav Sharma" required>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:0.82rem; font-weight:800; display:block; margin-bottom:4px;">Complete Delivery Address & PIN</label>
+            <input type="text" id="checkout-address" class="tss-search-input" placeholder="House/Flat, Street, Mumbai - 400001" required>
+          </div>
+
+          <div style="margin-top:16px; margin-bottom:16px;">
+            <label style="font-size:0.82rem; font-weight:800; display:block; margin-bottom:6px;">Payment Method</label>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+              <div class="pm-card selected" onclick="App.selectPaymentMethod('upi', this)" style="padding:10px; cursor:pointer; border-radius:4px; font-weight:800; font-size:0.8rem; text-align:center;">
+                ⚡ UPI / QR
+              </div>
+              <div class="pm-card" onclick="App.selectPaymentMethod('card', this)" style="padding:10px; cursor:pointer; border-radius:4px; font-weight:800; font-size:0.8rem; text-align:center;">
+                💳 Cards / NetBanking
+              </div>
+              <div class="pm-card" onclick="App.selectPaymentMethod('cod', this)" style="padding:10px; cursor:pointer; border-radius:4px; font-weight:800; font-size:0.8rem; text-align:center;">
+                💵 Cash on Delivery
+              </div>
+            </div>
+
+            <!-- UPI QR Simulator -->
+            <div id="upi-qr-box" style="margin-top:12px; background:var(--bg-tertiary); border-radius:6px; padding:12px; text-align:center;">
+              <div style="font-size:0.8rem; font-weight:800; margin-bottom:6px;">Scan with Google Pay, PhonePe, Paytm or UPI</div>
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=upi://pay?pa=thesouledstore@icici&pn=TheSouledStore&mc=5691&am=1299" style="width:110px; height:110px; margin:0 auto; display:block; background:#fff; padding:6px; border-radius:4px;"/>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">UPI ID: thesouledstore@icici</div>
+            </div>
+          </div>
+
+          <!-- Coupon Code -->
+          <div style="display:flex; gap:8px; margin-bottom:18px;">
+            <input type="text" id="promo-input" class="tss-search-input" placeholder="Enter coupon: TSS200 or VIP20">
+            <button type="button" class="btn-tss-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="App.applyPromoCode()">APPLY</button>
+          </div>
+
+          <button type="submit" class="btn-tss-primary" style="width:100%; padding:14px; font-size:0.95rem; justify-content:center;">
+            CONFIRM & PLACE ORDER →
+          </button>
+        </form>
+
+        <div style="background:var(--bg-secondary); border:1px solid var(--tss-border); padding:20px; border-radius:var(--radius-sm);" id="checkout-order-summary">
+          <!-- Dynamic summary -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="scripts/data.js"></script>
+  <script src="scripts/api.js"></script>
+  <script src="scripts/tryon.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>
