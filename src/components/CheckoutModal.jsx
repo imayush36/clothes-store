@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
+import { lookupPincode } from '@/lib/pincodeData';
 
 export default function CheckoutModal() {
   const {
@@ -16,22 +17,87 @@ export default function CheckoutModal() {
     promoCode,
     setPromoCode,
     formatPrice,
+    user,
+    savedAddresses,
+    addAddress,
     showToast
   } = useStore();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
+  const [selectedAddrId, setSelectedAddrId] = useState(null);
+  const [useNewAddress, setUseNewAddress] = useState(false);
+
+  // Address fields
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [pincode, setPincode] = useState('');
+  const [houseNo, setHouseNo] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [pinValidation, setPinValidation] = useState(null);
+
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [couponInput, setCouponInput] = useState('');
   const [orderConfirmed, setOrderConfirmed] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Set default address on open
+  useEffect(() => {
+    if (savedAddresses.length > 0) {
+      const def = savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+      setSelectedAddrId(def.id);
+      setName(def.fullName);
+      setPhone(def.phone);
+      setPincode(def.pincode);
+      setHouseNo(def.houseNo);
+      setStreet(def.street);
+      setCity(def.city);
+      setState(def.state);
+      setPinValidation(lookupPincode(def.pincode));
+    } else if (user) {
+      setName(user.name);
+      setEmail(user.email);
+      setPhone(user.phone);
+    }
+  }, [savedAddresses, user, isCheckoutOpen]);
 
   if (!isCheckoutOpen) return null;
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = subtotal * appliedDiscount + promoDiscountAmount;
   const finalTotal = Math.max(0, subtotal - discount);
+
+  const handleSelectSavedAddr = (addr) => {
+    setSelectedAddrId(addr.id);
+    setName(addr.fullName);
+    setPhone(addr.phone);
+    setPincode(addr.pincode);
+    setHouseNo(addr.houseNo);
+    setStreet(addr.street);
+    setCity(addr.city);
+    setState(addr.state);
+    setPinValidation(lookupPincode(addr.pincode));
+    setUseNewAddress(false);
+  };
+
+  const handlePincodeChange = (e) => {
+    const val = e.target.value;
+    setPincode(val);
+
+    if (val.length === 6) {
+      const result = lookupPincode(val);
+      if (result.valid) {
+        if (result.city !== 'Serviceable Area') setCity(result.city);
+        if (result.state !== 'India') setState(result.state);
+        setPinValidation({ success: true, text: result.deliveryText });
+      } else {
+        setPinValidation({ success: false, text: result.message });
+      }
+    } else {
+      setPinValidation(null);
+    }
+  };
 
   const applyCoupon = async () => {
     if (!couponInput.trim()) return;
@@ -62,12 +128,20 @@ export default function CheckoutModal() {
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
+
+    if (!pincode || pincode.length !== 6) {
+      showToast('Please enter a valid 6-digit delivery PIN code.', 'info');
+      return;
+    }
+
     setSubmitting(true);
+
+    const fullAddressString = `${houseNo}, ${street}, ${city}, ${state} - PIN: ${pincode} (Mobile: ${phone})`;
 
     const orderPayload = {
       customerName: name,
-      customerEmail: email,
-      customerAddress: address,
+      customerEmail: email || user?.email || 'customer@thesouledstore.com',
+      customerAddress: fullAddressString,
       items: cart,
       subtotal,
       discount,
@@ -88,12 +162,13 @@ export default function CheckoutModal() {
         trackingNumber = data.trackingNumber;
       }
     } catch (err) {
-      console.warn('API error, using local fallback:', err);
+      console.warn('API order error, fallback:', err);
     } finally {
       setSubmitting(false);
       setOrderConfirmed({
         name,
-        email,
+        email: orderPayload.customerEmail,
+        address: fullAddressString,
         finalTotal,
         trackingNumber
       });
@@ -110,33 +185,37 @@ export default function CheckoutModal() {
 
   return (
     <div className="modal-backdrop open">
-      <div className="modal-content" style={{ maxWidth: 840, padding: 36 }}>
+      <div className="modal-content" style={{ maxWidth: 880, padding: 34 }}>
         <button className="modal-close-btn" onClick={handleClose}>
           ✕
         </button>
 
         {orderConfirmed ? (
-          <div style={{ textAlign: 'center', padding: '24px 10px' }}>
+          <div style={{ textAlign: 'center', padding: '20px 10px' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>👻🎉</div>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 900, color: 'var(--tss-red)', marginBottom: 6 }}>
-              Order Confirmed!
+              Order Confirmed & Placed!
             </h2>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: 480, margin: '0 auto 20px' }}>
-              Thank you <b>{orderConfirmed.name}</b>! A confirmation email and tracking link has been dispatched to <b>{orderConfirmed.email}</b>.
+            <p style={{ color: 'var(--text-secondary)', maxWidth: 480, margin: '0 auto 16px', fontSize: '0.9rem' }}>
+              Thank you <b>{orderConfirmed.name}</b>! A confirmation notification & receipt has been dispatched to <b>{orderConfirmed.email}</b>.
             </p>
 
-            <div style={{ background: 'var(--bg-secondary)', border: '1px dashed var(--tss-red)', borderRadius: 'var(--radius-sm)', padding: 20, maxWidth: 440, margin: '0 auto 20px', textAlign: 'left' }}>
+            <div style={{ background: 'var(--bg-secondary)', border: '1px dashed var(--tss-red)', borderRadius: 'var(--radius-sm)', padding: 20, maxWidth: 460, margin: '0 auto 20px', textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Tracking Number:</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 900, color: 'var(--tss-red)' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '1.15rem', fontWeight: 900, color: 'var(--tss-red)' }}>
                   {orderConfirmed.trackingNumber}
                 </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.88rem' }}>
+                <span>Delivery Address:</span>
+                <span style={{ fontSize: '0.8rem', textAlign: 'right', maxWidth: 260, fontWeight: 700 }}>{orderConfirmed.address}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.88rem' }}>
                 <span>Total Paid:</span>
                 <b style={{ color: 'var(--text-primary)', fontSize: '1.1rem' }}>{formatPrice(orderConfirmed.finalTotal)}</b>
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#1b8755', fontWeight: 700 }}>Estimated Delivery: 2–3 Business Days</div>
+              <div style={{ fontSize: '0.82rem', color: '#1b8755', fontWeight: 800 }}>⚡ Estimated Delivery: 2–3 Business Days</div>
             </div>
 
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
@@ -150,56 +229,176 @@ export default function CheckoutModal() {
           </div>
         ) : (
           <>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.7rem', fontWeight: 900, marginBottom: 22 }}>
-              Express Checkout
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 900, marginBottom: 20 }}>
+              Express Streetwear Checkout ⚡
             </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: 28 }}>
               <form onSubmit={handleSubmitOrder}>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 800, display: 'block', marginBottom: 4 }}>
-                    Mobile Number / Email
+                {/* 1. Saved Address Selector */}
+                {savedAddresses.length > 0 && !useNewAddress ? (
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 900, textTransform: 'uppercase' }}>
+                        1. Select Delivery Address 📍
+                      </span>
+                      <button
+                        type="button"
+                        style={{ background: 'none', border: 'none', color: 'var(--tss-red)', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={() => setUseNewAddress(true)}
+                      >
+                        + Use Another Address
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {savedAddresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleSelectSavedAddr(addr)}
+                          style={{
+                            background: selectedAddrId === addr.id ? 'var(--tss-red-light)' : 'var(--bg-tertiary)',
+                            border: `2px solid ${selectedAddrId === addr.id ? 'var(--tss-red)' : 'var(--tss-border)'}`,
+                            borderRadius: 6,
+                            padding: 12,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: '0.88rem' }}>
+                              {addr.fullName} • <span style={{ color: 'var(--tss-red)' }}>PIN: {addr.pincode}</span>
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                              {addr.houseNo}, {addr.street}, {addr.city}
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 900, background: '#fff', padding: '2px 8px', borderRadius: 4, border: '1px solid var(--tss-border)' }}>
+                            {addr.addressType}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 900, textTransform: 'uppercase' }}>
+                        1. Delivery Address & PIN Code 📍
+                      </span>
+                      {savedAddresses.length > 0 && (
+                        <button
+                          type="button"
+                          style={{ background: 'none', border: 'none', color: 'var(--tss-red)', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}
+                          onClick={() => setUseNewAddress(false)}
+                        >
+                          ← Choose Saved Address
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                      <input
+                        type="text"
+                        className="tss-search-input"
+                        placeholder="Recipient Full Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                      <input
+                        type="tel"
+                        className="tss-search-input"
+                        placeholder="10-Digit Mobile"
+                        maxLength={10}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    {/* PIN Code Verification */}
+                    <div style={{ marginBottom: 10 }}>
+                      <input
+                        type="text"
+                        className="tss-search-input"
+                        placeholder="6-Digit PIN Code (e.g. 400001, 110001)"
+                        maxLength={6}
+                        value={pincode}
+                        onChange={handlePincodeChange}
+                        required
+                      />
+                      {pinValidation && (
+                        <div style={{ fontSize: '0.75rem', marginTop: 4, fontWeight: 700, color: pinValidation.success ? '#1b8755' : 'var(--tss-red)' }}>
+                          {pinValidation.text || pinValidation.deliveryText}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginBottom: 10 }}>
+                      <input
+                        type="text"
+                        className="tss-search-input"
+                        placeholder="Flat / House No / Building Name"
+                        value={houseNo}
+                        onChange={(e) => setHouseNo(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: 10 }}>
+                      <input
+                        type="text"
+                        className="tss-search-input"
+                        placeholder="Street / Locality / Landmark"
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <input
+                        type="text"
+                        className="tss-search-input"
+                        placeholder="City"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        required
+                      />
+                      <input
+                        type="text"
+                        className="tss-search-input"
+                        placeholder="State"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Contact Email */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: 4 }}>
+                    2. Order Receipt Email
                   </label>
                   <input
-                    type="text"
+                    type="email"
                     className="tss-search-input"
-                    placeholder="9876543210 or email@domain.com"
+                    placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 800, display: 'block', marginBottom: 4 }}>
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    className="tss-search-input"
-                    placeholder="Aarav Sharma"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 800, display: 'block', marginBottom: 4 }}>
-                    Complete Delivery Address & PIN
-                  </label>
-                  <input
-                    type="text"
-                    className="tss-search-input"
-                    placeholder="House/Flat, Street, Area, Mumbai - 400001"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    required
-                  />
-                </div>
 
-                {/* Payment Methods */}
-                <div style={{ marginTop: 16, marginBottom: 16 }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 800, display: 'block', marginBottom: 6 }}>
-                    Payment Method
+                {/* 3. Payment Method */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: 6 }}>
+                    3. Payment Method
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                     <div
@@ -207,14 +406,14 @@ export default function CheckoutModal() {
                       onClick={() => setPaymentMethod('UPI')}
                       style={{ padding: 10, cursor: 'pointer', borderRadius: 4, fontWeight: 800, fontSize: '0.8rem', textAlign: 'center' }}
                     >
-                      ⚡ UPI / QR
+                      ⚡ Instant UPI / QR
                     </div>
                     <div
                       className={`pm-card ${paymentMethod === 'Card' ? 'selected' : ''}`}
                       onClick={() => setPaymentMethod('Card')}
                       style={{ padding: 10, cursor: 'pointer', borderRadius: 4, fontWeight: 800, fontSize: '0.8rem', textAlign: 'center' }}
                     >
-                      💳 Cards / EMI
+                      💳 Cards / NetBanking
                     </div>
                     <div
                       className={`pm-card ${paymentMethod === 'COD' ? 'selected' : ''}`}
@@ -228,7 +427,7 @@ export default function CheckoutModal() {
                   {paymentMethod === 'UPI' && (
                     <div style={{ marginTop: 12, background: 'var(--bg-tertiary)', borderRadius: 6, padding: 12, textAlign: 'center' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 800, marginBottom: 6 }}>
-                        Scan with Google Pay, PhonePe, Paytm or Any UPI App
+                        Scan & Pay via GPay / PhonePe / Paytm / CRED
                       </div>
                       <img
                         src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=upi://pay?pa=thesouledstore@icici&pn=TheSouledStore&mc=5691&am=1299"
@@ -242,7 +441,7 @@ export default function CheckoutModal() {
                   )}
                 </div>
 
-                {/* Promo Code Input */}
+                {/* Promo Code */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
                   <input
                     type="text"
@@ -262,34 +461,36 @@ export default function CheckoutModal() {
                   style={{ width: '100%', padding: 14, fontSize: '0.95rem', justifyContent: 'center' }}
                   disabled={submitting}
                 >
-                  {submitting ? 'PROCESSING...' : 'CONFIRM & PLACE ORDER →'}
+                  {submitting ? 'PLACING ORDER...' : `PLACE ORDER • ${formatPrice(finalTotal)} →`}
                 </button>
               </form>
 
-              {/* Order Summary */}
-              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--tss-border)', padding: 20, borderRadius: 'var(--radius-sm)' }}>
-                <h4 style={{ fontFamily: 'var(--font-heading)', marginBottom: 12, fontSize: '1.1rem', fontWeight: 900 }}>
+              {/* Order Summary Right Panel */}
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--tss-border)', padding: 18, borderRadius: 'var(--radius-sm)', height: 'fit-content' }}>
+                <h4 style={{ fontFamily: 'var(--font-heading)', marginBottom: 12, fontSize: '1.05rem', fontWeight: 900 }}>
                   Order Summary ({cart.length} items)
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 180, overflowY: 'auto', marginBottom: 14 }}>
                   {cart.map((item) => (
                     <div key={`${item.id}-${item.size}-${item.color}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
-                      <span>{item.name} ({item.size}) x{item.quantity}</span>
+                      <span style={{ maxWidth: 140, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.name} ({item.size}) x{item.quantity}
+                      </span>
                       <b>{formatPrice(item.price * item.quantity)}</b>
                     </div>
                   ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: 6 }}>
                   <span>Bag Total</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', color: '#1b8755', marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#1b8755', marginBottom: 6 }}>
                   <span>Shipping Fee</span>
                   <span>FREE</span>
                 </div>
                 {discount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', color: 'var(--tss-red)', marginBottom: 6 }}>
-                    <span>Coupon Discount ({promoCode || 'PROMO'})</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--tss-red)', marginBottom: 6 }}>
+                    <span>Coupon ({promoCode || 'PROMO'})</span>
                     <span>-{formatPrice(discount)}</span>
                   </div>
                 )}
@@ -308,6 +509,10 @@ export default function CheckoutModal() {
                 >
                   <span>Total Payable</span>
                   <span style={{ color: 'var(--tss-red)' }}>{formatPrice(finalTotal)}</span>
+                </div>
+
+                <div style={{ marginTop: 14, padding: 10, background: 'var(--bg-tertiary)', borderRadius: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  🔒 100% Encrypted SSL Checkout with 7-day hassle-free replacement.
                 </div>
               </div>
             </div>

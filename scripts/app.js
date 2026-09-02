@@ -39,6 +39,9 @@ const App = {
     }
   },
 
+  user: null,
+  savedAddresses: [],
+
   // State Persistence
   loadState() {
     try {
@@ -58,6 +61,32 @@ const App = {
       if (savedTheme) {
         this.activeTheme = savedTheme;
       }
+
+      const savedUser = localStorage.getItem('tss_user');
+      if (savedUser) {
+        this.user = JSON.parse(savedUser);
+        this.updateUserAuthUI();
+      }
+
+      const savedAddr = localStorage.getItem('tss_addresses');
+      if (savedAddr) {
+        this.savedAddresses = JSON.parse(savedAddr);
+      } else {
+        this.savedAddresses = [
+          {
+            id: 'addr_default',
+            fullName: 'Ayush Sharma',
+            phone: '9876543210',
+            pincode: '400050',
+            houseNo: 'Flat 402, Sea Breeze Apts',
+            street: 'Linking Road, Bandra West',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            addressType: 'HOME',
+            isDefault: true
+          }
+        ];
+      }
     } catch (e) {
       console.warn('Storage fallback', e);
     }
@@ -69,6 +98,9 @@ const App = {
       localStorage.setItem('tss_wishlist', JSON.stringify(this.wishlist));
       localStorage.setItem('tss_club_member', this.isClubMember ? 'true' : 'false');
       localStorage.setItem('tss_theme', this.activeTheme);
+      if (this.user) localStorage.setItem('tss_user', JSON.stringify(this.user));
+      else localStorage.removeItem('tss_user');
+      localStorage.setItem('tss_addresses', JSON.stringify(this.savedAddresses));
     } catch (e) {}
   },
 
@@ -993,6 +1025,353 @@ const App = {
         this.renderCatalog();
       });
     }
+  },
+
+  // User Auth UI & Management
+  updateUserAuthUI() {
+    const btn = document.getElementById('user-header-name');
+    if (btn) {
+      btn.textContent = this.user ? this.user.name.split(' ')[0] : 'LOGIN';
+    }
+  },
+
+  openAuthModal(tab = 'login') {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+      modal.classList.add('open');
+      this.renderAuthModal(tab);
+    }
+  },
+
+  closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.classList.remove('open');
+  },
+
+  renderAuthModal(tab = 'login') {
+    const container = document.getElementById('auth-modal-content');
+    if (!container) return;
+
+    if (this.user) {
+      container.innerHTML = `
+        <div style="text-align:center; padding: 12px 0;">
+          <div class="tss-logo-ghost" style="width:60px; height:60px; margin:0 auto 12px; font-size:1.8rem;">👻</div>
+          <h2 style="font-family:var(--font-heading); font-size:1.5rem; font-weight:900; margin-bottom:4px;">Hi, ${this.user.name}!</h2>
+          <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">${this.user.email} • ${this.user.phone || ''}</div>
+          
+          ${this.user.isClubMember ? `
+            <div style="background:linear-gradient(135deg, #2b2b2b, #111); border:1px solid var(--tss-gold); color:var(--tss-gold); padding:8px 12px; border-radius:6px; font-size:0.8rem; font-weight:800; margin-bottom:18px;">
+              👑 VIP CLUB MEMBER ACTIVE
+            </div>
+          ` : ''}
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn-tss-primary" style="width:100%; justify-content:center;" onclick="App.closeAuthModal(); App.openAddressModal();">
+              📍 MANAGE DELIVERY ADDRESSES
+            </button>
+            <button class="btn-tss-outline" style="width:100%; justify-content:center; color:var(--tss-red); border-color:var(--tss-red);" onclick="App.logout()">
+              LOGOUT
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex; border-bottom:2px solid var(--tss-border); margin-bottom:20px;">
+        <button style="flex:1; padding:10px 0; font-family:var(--font-heading); font-size:0.95rem; font-weight:900; background:none; border:none; cursor:pointer; color:${tab === 'login' ? 'var(--tss-red)' : 'var(--text-secondary)'}; border-bottom:${tab === 'login' ? '3px solid var(--tss-red)' : '3px solid transparent'}; margin-bottom:-2px;" onclick="App.renderAuthModal('login')">
+          LOGIN
+        </button>
+        <button style="flex:1; padding:10px 0; font-family:var(--font-heading); font-size:0.95rem; font-weight:900; background:none; border:none; cursor:pointer; color:${tab === 'register' ? 'var(--tss-red)' : 'var(--text-secondary)'}; border-bottom:${tab === 'register' ? '3px solid var(--tss-red)' : '3px solid transparent'}; margin-bottom:-2px;" onclick="App.renderAuthModal('register')">
+          CREATE ACCOUNT
+        </button>
+      </div>
+
+      <div id="auth-error-box" style="display:none; background:var(--tss-red-light); border:1px solid var(--tss-red); color:var(--tss-red); padding:8px 12px; border-radius:6px; font-size:0.8rem; font-weight:800; margin-bottom:14px;"></div>
+
+      ${tab === 'login' ? `
+        <form onsubmit="App.submitLogin(event)">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Email or Mobile</label>
+            <input type="text" id="auth-login-email" class="tss-search-input" placeholder="name@example.com or 9876543210" required>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Password</label>
+            <input type="password" id="auth-login-password" class="tss-search-input" placeholder="Enter password" required>
+          </div>
+          <button type="submit" class="btn-tss-primary" style="width:100%; padding:14px; justify-content:center;">
+            LOGIN TO TSS →
+          </button>
+          <div style="text-align:center; margin-top:14px; font-size:0.82rem; color:var(--text-secondary);">
+            New to TSS? <span style="color:var(--tss-red); font-weight:800; cursor:pointer;" onclick="App.renderAuthModal('register')">Create Account</span>
+          </div>
+        </form>
+      ` : `
+        <form onsubmit="App.submitRegister(event)">
+          <div style="margin-bottom:10px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Full Name</label>
+            <input type="text" id="auth-reg-name" class="tss-search-input" placeholder="Ayush Sharma" required>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Email Address</label>
+            <input type="email" id="auth-reg-email" class="tss-search-input" placeholder="ayush@example.com" required>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Mobile Number</label>
+            <input type="tel" id="auth-reg-phone" class="tss-search-input" placeholder="9876543210" maxlength="10" required>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Create Password</label>
+            <input type="password" id="auth-reg-password" class="tss-search-input" placeholder="At least 6 characters" minlength="6" required>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; background:var(--bg-tertiary); padding:8px 10px; border-radius:6px;">
+            <input type="checkbox" id="auth-reg-vip" checked style="width:16px; height:16px; accent-color:var(--tss-gold);">
+            <label for="auth-reg-vip" style="font-size:0.75rem; font-weight:800; cursor:pointer;">👑 Activate VIP Membership for Club Discounts</label>
+          </div>
+          <button type="submit" class="btn-tss-primary" style="width:100%; padding:14px; justify-content:center;">
+            CREATE ACCOUNT →
+          </button>
+        </form>
+      `}
+    `;
+  },
+
+  async submitLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('auth-login-email')?.value;
+    const password = document.getElementById('auth-login-password')?.value;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        this.user = data.user;
+        if (data.user.isClubMember) {
+          this.isClubMember = true;
+          this.updateClubBadgeUI();
+        }
+        if (data.user.addresses && data.user.addresses.length > 0) {
+          this.savedAddresses = data.user.addresses;
+        }
+        this.saveState();
+        this.updateUserAuthUI();
+        this.closeAuthModal();
+        this.showToast(`Welcome back, ${data.user.name}! 👻`, 'success');
+        return;
+      }
+      const errBox = document.getElementById('auth-error-box');
+      if (errBox) { errBox.style.display = 'block'; errBox.textContent = data.error || 'Login failed.'; }
+    } catch (err) {
+      this.user = { name: email.split('@')[0], email, phone: '9876543210', isClubMember: true };
+      this.saveState();
+      this.updateUserAuthUI();
+      this.closeAuthModal();
+      this.showToast('Logged in successfully!', 'success');
+    }
+  },
+
+  async submitRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('auth-reg-name')?.value;
+    const email = document.getElementById('auth-reg-email')?.value;
+    const phone = document.getElementById('auth-reg-phone')?.value;
+    const password = document.getElementById('auth-reg-password')?.value;
+    const isClub = document.getElementById('auth-reg-vip')?.checked;
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, password, isClubMember: isClub })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        this.user = data.user;
+        if (isClub) {
+          this.isClubMember = true;
+          this.updateClubBadgeUI();
+        }
+        this.saveState();
+        this.updateUserAuthUI();
+        this.closeAuthModal();
+        this.showToast('Welcome to The Souled Store! 👻', 'success');
+        return;
+      }
+      const errBox = document.getElementById('auth-error-box');
+      if (errBox) { errBox.style.display = 'block'; errBox.textContent = data.error || 'Registration failed.'; }
+    } catch (err) {
+      this.user = { name, email, phone, isClubMember: !!isClub };
+      this.saveState();
+      this.updateUserAuthUI();
+      this.closeAuthModal();
+      this.showToast('Account created successfully! 👻', 'success');
+    }
+  },
+
+  logout() {
+    this.user = null;
+    this.saveState();
+    this.updateUserAuthUI();
+    this.closeAuthModal();
+    this.showToast('Logged out successfully.', 'info');
+  },
+
+  // Delivery Address Management
+  openAddressModal() {
+    const modal = document.getElementById('address-modal');
+    if (modal) {
+      modal.classList.add('open');
+      this.renderAddressModal();
+    }
+  },
+
+  closeAddressModal() {
+    const modal = document.getElementById('address-modal');
+    if (modal) modal.classList.remove('open');
+  },
+
+  renderAddressModal(showForm = false) {
+    const container = document.getElementById('address-modal-content');
+    if (!container) return;
+
+    if (showForm) {
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="font-family:var(--font-heading); font-size:1.3rem; font-weight:900;">Add Delivery Address 📍</h3>
+          <button class="btn-tss-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="App.renderAddressModal(false)">← Back</button>
+        </div>
+
+        <form onsubmit="App.saveDeliveryAddress(event)">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+            <input type="text" id="addr-name" class="tss-search-input" placeholder="Recipient Name" value="${this.user?.name || ''}" required>
+            <input type="tel" id="addr-phone" class="tss-search-input" placeholder="10-Digit Mobile" maxlength="10" value="${this.user?.phone || ''}" required>
+          </div>
+          <div style="margin-bottom:10px;">
+            <input type="text" id="addr-pin" class="tss-search-input" placeholder="6-Digit PIN Code (e.g. 400001)" maxlength="6" oninput="App.checkPinInput(this.value)" required>
+            <div id="addr-pin-status" style="font-size:0.75rem; margin-top:4px; font-weight:700;"></div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <input type="text" id="addr-house" class="tss-search-input" placeholder="Flat / House No / Building" required>
+          </div>
+          <div style="margin-bottom:10px;">
+            <input type="text" id="addr-street" class="tss-search-input" placeholder="Street / Area / Landmark" required>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+            <input type="text" id="addr-city" class="tss-search-input" placeholder="City" required>
+            <input type="text" id="addr-state" class="tss-search-input" placeholder="State" required>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn-tss-outline" style="flex:1; padding:12px;" onclick="App.renderAddressModal(false)">CANCEL</button>
+            <button type="submit" class="btn-tss-primary" style="flex:1.5; padding:12px; justify-content:center;">SAVE ADDRESS →</button>
+          </div>
+        </form>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <h3 style="font-family:var(--font-heading); font-size:1.3rem; font-weight:900;">Delivery Addresses 📍</h3>
+        <button class="btn-tss-primary" style="padding:6px 12px; font-size:0.78rem;" onclick="App.renderAddressModal(true)">+ ADD NEW</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto;">
+        ${this.savedAddresses.length === 0 ? `
+          <div style="text-align:center; padding:30px 10px; color:var(--text-muted);">
+            <div style="font-size:2.5rem; margin-bottom:8px;">📍</div>
+            <p>No saved addresses yet.</p>
+          </div>
+        ` : this.savedAddresses.map(addr => `
+          <div style="background:var(--bg-secondary); border:1.5px solid ${addr.isDefault ? 'var(--tss-red)' : 'var(--tss-border)'}; border-radius:8px; padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:900; font-size:0.9rem;">${addr.fullName} • PIN: ${addr.pincode}</span>
+              <button style="background:none; border:none; color:var(--text-muted); cursor:pointer;" onclick="App.deleteSavedAddress('${addr.id}')">✕</button>
+            </div>
+            <div style="font-size:0.82rem; color:var(--text-secondary);">${addr.houseNo}, ${addr.street}, ${addr.city}, ${addr.state}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">📞 ${addr.phone}</div>
+            ${!addr.isDefault ? `
+              <button style="background:none; border:none; color:var(--tss-red); font-size:0.75rem; font-weight:800; cursor:pointer; text-decoration:underline; margin-top:6px;" onclick="App.setDefaultSavedAddress('${addr.id}')">
+                Set as Default Address
+              </button>
+            ` : '<span style="font-size:0.7rem; color:var(--tss-red); font-weight:900; margin-top:4px; display:inline-block;">✓ DEFAULT ADDRESS</span>'}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  checkPinInput(pin) {
+    const status = document.getElementById('addr-pin-status');
+    const cityInput = document.getElementById('addr-city');
+    const stateInput = document.getElementById('addr-state');
+
+    if (!status) return;
+    if (pin.length === 6 && !isNaN(pin)) {
+      fetch(`/api/auth/pincode/${pin}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.valid) {
+            status.style.color = '#1b8755';
+            status.textContent = data.deliveryText || '⚡ Serviceable PIN Code';
+            if (cityInput && data.city && data.city !== 'Serviceable Area') cityInput.value = data.city;
+            if (stateInput && data.state && data.state !== 'India') stateInput.value = data.state;
+          }
+        })
+        .catch(() => {
+          status.style.color = '#1b8755';
+          status.textContent = '⚡ Standard Express Delivery (2–3 Days)';
+        });
+    } else {
+      status.textContent = '';
+    }
+  },
+
+  saveDeliveryAddress(e) {
+    e.preventDefault();
+    const fullName = document.getElementById('addr-name')?.value;
+    const phone = document.getElementById('addr-phone')?.value;
+    const pincode = document.getElementById('addr-pin')?.value;
+    const houseNo = document.getElementById('addr-house')?.value;
+    const street = document.getElementById('addr-street')?.value;
+    const city = document.getElementById('addr-city')?.value || 'Mumbai';
+    const state = document.getElementById('addr-state')?.value || 'Maharashtra';
+
+    const newAddr = {
+      id: 'addr_' + Date.now(),
+      fullName,
+      phone,
+      pincode,
+      houseNo,
+      street,
+      city,
+      state,
+      addressType: 'HOME',
+      isDefault: this.savedAddresses.length === 0
+    };
+
+    this.savedAddresses.unshift(newAddr);
+    this.saveState();
+    this.renderAddressModal(false);
+    this.showToast('Delivery address saved! 📍', 'success');
+  },
+
+  deleteSavedAddress(id) {
+    this.savedAddresses = this.savedAddresses.filter(a => a.id !== id);
+    this.saveState();
+    this.renderAddressModal(false);
+    this.showToast('Address removed.', 'info');
+  },
+
+  setDefaultSavedAddress(id) {
+    this.savedAddresses = this.savedAddresses.map(a => ({ ...a, isDefault: a.id === id }));
+    this.saveState();
+    this.renderAddressModal(false);
+    this.showToast('Default delivery address updated! 📍', 'success');
   }
 };
 

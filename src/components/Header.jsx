@@ -19,6 +19,9 @@ export default function Header() {
     toggleClubMembership,
     theme,
     toggleTheme,
+    user,
+    setIsAuthModalOpen,
+    setIsAddressModalOpen,
     setIsCartOpen,
     setIsWishlistOpen,
     setIsTrackOrderOpen,
@@ -95,10 +98,17 @@ export default function Header() {
           </div>
 
           <div className="top-bar-right-actions">
+            {/* Delivery Address Manager Button */}
+            <button className="top-nav-link-btn" onClick={() => setIsAddressModalOpen(true)} title="Manage Delivery Addresses">
+              <span>📍</span> Delivery Address
+            </button>
+
+            {/* Track Order */}
             <button className="top-nav-link-btn" onClick={() => setIsTrackOrderOpen(true)}>
               <span>🚚</span> Track Order
             </button>
 
+            {/* Currency */}
             <select
               className="top-currency-select"
               value={currency}
@@ -113,11 +123,12 @@ export default function Header() {
               <option value="GBP">🇬🇧 GBP (£)</option>
             </select>
 
+            {/* Theme */}
             <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Dark/Light Mode">
               {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
             </button>
 
-            <span className="free-shipping-tag">📦 Free Shipping on ₹999+</span>
+            <span className="free-shipping-tag">📦 Free Express Shipping</span>
           </div>
         </div>
       </div>
@@ -195,16 +206,30 @@ export default function Header() {
 
           {/* Header Actions */}
           <div className="tss-header-actions">
+            {/* VIP Club Membership Pill */}
             <button className="tss-club-vip-pill" onClick={toggleClubMembership}>
               <span>👑</span>
               <span>{isClubMember ? 'VIP CLUB ACTIVE ✨' : 'JOIN CLUB'}</span>
             </button>
 
+            {/* User Account / Login Button */}
+            <button
+              className="icon-action-btn"
+              style={{ padding: '6px 12px', width: 'auto', borderRadius: 20, fontSize: '0.82rem', fontWeight: 800, display: 'flex', gap: 6 }}
+              onClick={() => setIsAuthModalOpen(true)}
+              title={user ? `Logged in as ${user.name}` : 'Login / Register'}
+            >
+              <span>👤</span>
+              <span>{user ? user.name.split(' ')[0] : 'LOGIN'}</span>
+            </button>
+
+            {/* Wishlist */}
             <button className="icon-action-btn" onClick={() => setIsWishlistOpen(true)} title="Wishlist">
               <span>♥</span>
               {wishlist.length > 0 && <span className="action-counter-badge">{wishlist.length}</span>}
             </button>
 
+            {/* Shopping Cart */}
             <button className="icon-action-btn" onClick={() => setIsCartOpen(true)} title="Cart">
               <span>🛍️</span>
               {totalCartCount > 0 && <span className="action-counter-badge">{totalCartCount}</span>}

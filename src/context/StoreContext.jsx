@@ -19,6 +19,12 @@ export function StoreProvider({ children }) {
   const [theme, setTheme] = useState('light');
   const [toasts, setToasts] = useState([]);
 
+  // User Auth & Addresses State
+  const [user, setUser] = useState(null);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
   // Modals & Drawers State
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
@@ -50,6 +56,35 @@ export function StoreProvider({ children }) {
         setTheme(savedTheme);
         document.documentElement.setAttribute('data-theme', savedTheme);
       }
+
+      const savedUser = localStorage.getItem('tss_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        if (parsed.isClubMember) setIsClubMember(true);
+      }
+
+      const savedAddr = localStorage.getItem('tss_addresses');
+      if (savedAddr) {
+        setSavedAddresses(JSON.parse(savedAddr));
+      } else {
+        // Default sample delivery address
+        setSavedAddresses([
+          {
+            id: 'addr_default',
+            fullName: 'Ayush Sharma',
+            phone: '9876543210',
+            pincode: '400050',
+            houseNo: 'Flat 402, Sea Breeze Apts',
+            street: 'Linking Road, Bandra West',
+            landmark: 'Near Bandra Station',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            addressType: 'HOME',
+            isDefault: true
+          }
+        ]);
+      }
     } catch (e) {}
   }, []);
 
@@ -60,15 +95,11 @@ export function StoreProvider({ children }) {
       localStorage.setItem('tss_wishlist', JSON.stringify(wishlist));
       localStorage.setItem('tss_club_member', isClubMember ? 'true' : 'false');
       localStorage.setItem('tss_theme', theme);
+      if (user) localStorage.setItem('tss_user', JSON.stringify(user));
+      else localStorage.removeItem('tss_user');
+      localStorage.setItem('tss_addresses', JSON.stringify(savedAddresses));
     } catch (e) {}
-  }, [cart, wishlist, isClubMember, theme]);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    showToast(`Switched to ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`);
-  };
+  }, [cart, wishlist, isClubMember, theme, user, savedAddresses]);
 
   const showToast = (message, type = 'info') => {
     const id = Date.now() + Math.random();
@@ -76,6 +107,99 @@ export function StoreProvider({ children }) {
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3200);
+  };
+
+  const login = async (email, password) => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        if (data.user.isClubMember) setIsClubMember(true);
+        if (data.user.addresses && data.user.addresses.length > 0) {
+          setSavedAddresses(data.user.addresses);
+        }
+        showToast(`Welcome back, ${data.user.name}! 👻`, 'success');
+        return { success: true };
+      }
+      return { success: false, error: data.error };
+    } catch (e) {
+      // Local fallback login
+      const localUser = { name: email.split('@')[0], email, phone: '9876543210', isClubMember: true };
+      setUser(localUser);
+      showToast('Logged in successfully!', 'success');
+      return { success: true };
+    }
+  };
+
+  const register = async ({ name, email, phone, password, isClubMember }) => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, password, isClubMember })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        if (isClubMember) setIsClubMember(true);
+        showToast('Account created successfully! Welcome to TSS 👻', 'success');
+        return { success: true };
+      }
+      return { success: false, error: data.error };
+    } catch (e) {
+      const localUser = { name, email, phone, isClubMember: !!isClubMember };
+      setUser(localUser);
+      if (isClubMember) setIsClubMember(true);
+      showToast('Account created successfully! 👻', 'success');
+      return { success: true };
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    showToast('Logged out successfully.', 'info');
+  };
+
+  const addAddress = async (newAddr) => {
+    setSavedAddresses(prev => {
+      let updated = [...prev];
+      if (newAddr.isDefault) {
+        updated = updated.map(a => ({ ...a, isDefault: false }));
+      }
+      return [newAddr, ...updated];
+    });
+
+    if (user?.email) {
+      try {
+        await fetch('/api/auth/address', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email, address: newAddr })
+        });
+      } catch (e) {}
+    }
+  };
+
+  const removeAddress = (id) => {
+    setSavedAddresses(prev => prev.filter(a => a.id !== id));
+    showToast('Address removed', 'info');
+  };
+
+  const setDefaultAddress = (id) => {
+    setSavedAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
+    showToast('Default delivery address updated! 📍', 'success');
+  };
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    showToast(`Switched to ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`);
   };
 
   const formatPrice = (inrPrice) => {
@@ -206,6 +330,19 @@ export function StoreProvider({ children }) {
         removeFromCart,
         toggleWishlist,
         resetFilters,
+        // User Auth & Addresses
+        user,
+        login,
+        register,
+        logout,
+        savedAddresses,
+        addAddress,
+        removeAddress,
+        setDefaultAddress,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        isAddressModalOpen,
+        setIsAddressModalOpen,
         // Modals & Drawers
         isCartOpen,
         setIsCartOpen,

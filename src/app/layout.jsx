@@ -9,6 +9,8 @@ import CheckoutModal from '@/components/CheckoutModal';
 import TrackOrderModal from '@/components/TrackOrderModal';
 import FitQuizModal from '@/components/FitQuizModal';
 import ToastContainer from '@/components/ToastContainer';
+import AuthModal from '@/components/AuthModal';
+import AddressManagerModal from '@/components/AddressManagerModal';
 
 export const metadata = {
   title: "The Souled Store | Official Merch, Oversized Tees & Streetwear Studio",
@@ -32,6 +34,8 @@ export default function RootLayout({ children }) {
           <CheckoutModal />
           <TrackOrderModal />
           <FitQuizModal />
+          <AuthModal />
+          <AddressManagerModal />
           <ToastContainer />
         </StoreProvider>
       </body>

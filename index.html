@@ -23,6 +23,11 @@
       </div>
 
       <div class="top-bar-right-actions">
+        <!-- Delivery Address Button -->
+        <button class="top-nav-link-btn" onclick="App.openAddressModal()" title="Manage Delivery Addresses">
+          <span>📍</span> Delivery Address
+        </button>
+
         <!-- Track Order Quick Link -->
         <button class="top-nav-link-btn" onclick="App.openTrackOrderModal()">
           <span>🚚</span> Track Order
@@ -86,6 +91,12 @@
         <button class="tss-club-vip-pill" onclick="App.toggleClubMembership()" title="Toggle TSS VIP Membership">
           <span>👑</span>
           <span id="club-membership-status">JOIN CLUB</span>
+        </button>
+
+        <!-- User Login / Account Button -->
+        <button class="icon-action-btn" id="user-auth-header-btn" onclick="App.openAuthModal()" title="Login / Register" style="width:auto; padding:6px 12px; border-radius:20px; font-size:0.82rem; font-weight:800; display:flex; gap:6px;">
+          <span>👤</span>
+          <span id="user-header-name">LOGIN</span>
         </button>
 
         <!-- Wishlist -->
@@ -565,6 +576,26 @@
         <div style="background:var(--bg-secondary); border:1px solid var(--tss-border); padding:20px; border-radius:var(--radius-sm);" id="checkout-order-summary">
           <!-- Dynamic summary -->
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login / Register Modal -->
+  <div class="modal-backdrop" id="auth-modal">
+    <div class="modal-content" style="max-width:460px; padding:32px;">
+      <button class="modal-close-btn" onclick="App.closeAuthModal()">✕</button>
+      <div id="auth-modal-content">
+        <!-- Dynamic via app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery Address Manager Modal -->
+  <div class="modal-backdrop" id="address-modal">
+    <div class="modal-content" style="max-width:560px; padding:32px;">
+      <button class="modal-close-btn" onclick="App.closeAddressModal()">✕</button>
+      <div id="address-modal-content">
+        <!-- Dynamic via app.js -->
       </div>
     </div>
   </div>
