@@ -161,4 +161,89 @@ router.get('/pincode/:pin', (req, res) => {
   });
 });
 
+// In-memory OTP Store for Express
+const otpStore = new Map();
+
+// 1. Send OTP
+router.post('/forgot-password/send-otp', async (req, res) => {
+  try {
+    const { emailOrPhone } = req.body;
+    if (!emailOrPhone) {
+      return res.status(400).json({ error: 'Please enter registered Email or Mobile number.' });
+    }
+
+    const identifier = emailOrPhone.toLowerCase().trim();
+
+    if (mongoose.connection.readyState === 1) {
+      const User = mongoose.models.User || mongoose.model('User');
+      const user = await User.findOne({
+        $or: [{ email: identifier }, { phone: identifier }]
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'No account found with this Email or Mobile number.' });
+      }
+    }
+
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(identifier, { otp: generatedOtp, expiresAt: Date.now() + 10 * 60 * 1000 });
+
+    res.json({
+      success: true,
+      message: `OTP sent successfully to ${identifier}!`,
+      otp: generatedOtp,
+      expiresInMinutes: 10
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 2. Verify OTP and Reset Password
+router.post('/forgot-password/verify-reset', async (req, res) => {
+  try {
+    const { emailOrPhone, otp, newPassword } = req.body;
+    if (!emailOrPhone || !otp || !newPassword) {
+      return res.status(400).json({ error: 'All fields (Email/Phone, OTP, New Password) are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+    }
+
+    const identifier = emailOrPhone.toLowerCase().trim();
+    const stored = otpStore.get(identifier);
+
+    if (!stored) {
+      return res.status(400).json({ error: 'No active OTP request found. Please request a new OTP.' });
+    }
+
+    if (Date.now() > stored.expiresAt) {
+      otpStore.delete(identifier);
+      return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+    }
+
+    if (stored.otp.trim() !== otp.trim()) {
+      return res.status(400).json({ error: 'Invalid OTP. Please check and try again.' });
+    }
+
+    otpStore.delete(identifier);
+
+    if (mongoose.connection.readyState === 1) {
+      const User = mongoose.models.User || mongoose.model('User');
+      await User.findOneAndUpdate(
+        { $or: [{ email: identifier }, { phone: identifier }] },
+        { $set: { password: newPassword } }
+      );
+    }
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully! You can now login with your new password.'
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;

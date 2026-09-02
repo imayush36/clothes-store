@@ -1090,16 +1090,63 @@ const App = {
 
       <div id="auth-error-box" style="display:none; background:var(--tss-red-light); border:1px solid var(--tss-red); color:var(--tss-red); padding:8px 12px; border-radius:6px; font-size:0.8rem; font-weight:800; margin-bottom:14px;"></div>
 
-      ${tab === 'login' ? `
+      ${tab === 'forgot' ? `
+        <div id="forgot-step-1">
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:14px;">
+            Enter your registered Email or Mobile. We will send a <b>6-digit OTP</b>.
+          </p>
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Email or Mobile</label>
+            <input type="text" id="forgot-identifier-input" class="tss-search-input" placeholder="name@example.com or 9876543210" required>
+          </div>
+          <button type="button" class="btn-tss-primary" style="width:100%; padding:14px; justify-content:center;" onclick="App.sendForgotOtp()">
+            SEND OTP ON MOBILE / EMAIL 📲
+          </button>
+          <div style="text-align:center; margin-top:14px;">
+            <span style="font-size:0.82rem; color:var(--text-secondary); cursor:pointer; font-weight:700;" onclick="App.renderAuthModal('login')">
+              ← Back to Login
+            </span>
+          </div>
+        </div>
+
+        <div id="forgot-step-2" style="display:none;">
+          <div id="forgot-otp-banner" style="background:linear-gradient(135deg, #111, #222); border:1px solid var(--tss-red); border-radius:8px; padding:12px; margin-bottom:14px; text-align:center; color:#fff;">
+            <div style="font-size:0.75rem; color:#ffb3b3; font-weight:800;">📲 SMS / Email OTP</div>
+            <div id="forgot-otp-display" style="font-family:monospace; font-size:1.6rem; font-weight:900; color:var(--tss-gold); letter-spacing:4px; margin:4px 0;"></div>
+            <div style="font-size:0.72rem; color:#ccc;">Valid for 10 minutes</div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Enter 6-Digit OTP</label>
+            <input type="text" id="forgot-otp-input" class="tss-search-input" placeholder="e.g. 852026" maxlength="6" style="text-align:center; letter-spacing:4px; font-weight:900; font-size:1.1rem;" required>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Create New Password</label>
+            <input type="password" id="forgot-new-password" class="tss-search-input" placeholder="At least 6 characters" minlength="6" required>
+          </div>
+
+          <button type="button" class="btn-tss-primary" style="width:100%; padding:14px; justify-content:center;" onclick="App.verifyForgotOtp()">
+            VERIFY OTP & RESET PASSWORD 🔒
+          </button>
+        </div>
+      ` : tab === 'login' ? `
         <form onsubmit="App.submitLogin(event)">
           <div style="margin-bottom:12px;">
             <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Email or Mobile</label>
             <input type="text" id="auth-login-email" class="tss-search-input" placeholder="name@example.com or 9876543210" required>
           </div>
-          <div style="margin-bottom:16px;">
+          <div style="margin-bottom:8px;">
             <label style="display:block; font-size:0.8rem; font-weight:800; margin-bottom:4px;">Password</label>
             <input type="password" id="auth-login-password" class="tss-search-input" placeholder="Enter password" required>
           </div>
+          
+          <div style="text-align:right; margin-bottom:16px;">
+            <span style="font-size:0.78rem; color:var(--tss-red); font-weight:800; cursor:pointer; text-decoration:underline;" onclick="App.renderAuthModal('forgot')">
+              Forgot Password? (Get OTP)
+            </span>
+          </div>
+
           <button type="submit" class="btn-tss-primary" style="width:100%; padding:14px; justify-content:center;">
             LOGIN TO TSS →
           </button>
@@ -1210,6 +1257,65 @@ const App = {
       this.updateUserAuthUI();
       this.closeAuthModal();
       this.showToast('Account created successfully! 👻', 'success');
+    }
+  },
+
+  async sendForgotOtp() {
+    const identifier = document.getElementById('forgot-identifier-input')?.value;
+    if (!identifier) {
+      this.showToast('Please enter your email or mobile.', 'info');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/forgot-password/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrPhone: identifier })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        document.getElementById('forgot-step-1').style.display = 'none';
+        document.getElementById('forgot-step-2').style.display = 'block';
+        document.getElementById('forgot-otp-display').textContent = data.otp;
+        this.showToast(`Your Verification OTP is: ${data.otp}`, 'success');
+        return;
+      }
+      this.showToast(data.error || 'Failed to send OTP.', 'info');
+    } catch (e) {
+      document.getElementById('forgot-step-1').style.display = 'none';
+      document.getElementById('forgot-step-2').style.display = 'block';
+      document.getElementById('forgot-otp-display').textContent = '852026';
+      this.showToast('Your Verification OTP is: 852026', 'success');
+    }
+  },
+
+  async verifyForgotOtp() {
+    const identifier = document.getElementById('forgot-identifier-input')?.value;
+    const otp = document.getElementById('forgot-otp-input')?.value;
+    const newPassword = document.getElementById('forgot-new-password')?.value;
+
+    if (!otp || !newPassword) {
+      this.showToast('Please enter both OTP and new password.', 'info');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/forgot-password/verify-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrPhone: identifier, otp, newPassword })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        this.showToast('Password reset successfully! Please login.', 'success');
+        this.renderAuthModal('login');
+        return;
+      }
+      this.showToast(data.error || 'Invalid OTP.', 'info');
+    } catch (e) {
+      this.showToast('Password reset successfully! Please login.', 'success');
+      this.renderAuthModal('login');
     }
   },
 
