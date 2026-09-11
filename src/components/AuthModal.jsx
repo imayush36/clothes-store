@@ -22,7 +22,7 @@ export default function AuthModal() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [joinClub, setJoinClub] = useState(true);
+
   
   // Forgot Password / OTP state
   const [forgotIdentifier, setForgotIdentifier] = useState('');
@@ -72,7 +72,7 @@ export default function AuthModal() {
     setLoading(true);
     setErrorMsg(null);
 
-    const result = await register({ name, email, phone, password, isClubMember: joinClub });
+    const result = await register({ name, email, phone, password, isClubMember: false });
     setLoading(false);
 
     if (result.success) {
@@ -559,18 +559,7 @@ export default function AuthModal() {
                   />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18, background: 'var(--bg-tertiary)', padding: 10, borderRadius: 6 }}>
-                  <input
-                    type="checkbox"
-                    id="join-vip-checkbox"
-                    checked={joinClub}
-                    onChange={(e) => setJoinClub(e.target.checked)}
-                    style={{ width: 18, height: 18, accentColor: 'var(--tss-gold)' }}
-                  />
-                  <label htmlFor="join-vip-checkbox" style={{ fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
-                    👑 Activate TSS VIP Membership for exclusive member discounts!
-                  </label>
-                </div>
+
 
                 <button
                   type="submit"
