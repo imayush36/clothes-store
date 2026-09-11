@@ -178,31 +178,41 @@ export default function CheckoutModal() {
 
     let trackingNumber = 'TSS-' + Math.floor(100000 + Math.random() * 900000);
 
+    // Use AbortController so fetch never hangs forever (12 second timeout)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload)
+        body: JSON.stringify(orderPayload),
+        signal: controller.signal
       });
-      const data = await res.json();
-      if (data.trackingNumber) {
-        trackingNumber = data.trackingNumber;
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.trackingNumber) {
+          trackingNumber = data.trackingNumber;
+        }
       }
     } catch (err) {
-      console.warn('API order error, fallback:', err);
-    } finally {
-      setSubmitting(false);
-      setOrderConfirmed({
-        name,
-        email: orderPayload.customerEmail,
-        address: fullAddressString,
-        finalTotal,
-        trackingNumber
-      });
-      setCart([]);
-      setAppliedDiscount(0);
-      setPromoDiscountAmount(0);
+      clearTimeout(timeoutId);
+      console.warn('API order save failed, using local tracking:', err.message || err);
     }
+
+    // Always confirm order locally — user should never be stuck on PLACING ORDER
+    setSubmitting(false);
+    setOrderConfirmed({
+      name: name.trim() || user.name,
+      email: email.trim(),
+      address: fullAddressString,
+      finalTotal,
+      trackingNumber
+    });
+    setCart([]);
+    setAppliedDiscount(0);
+    setPromoDiscountAmount(0);
   };
 
   const handleClose = () => {

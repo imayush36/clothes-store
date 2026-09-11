@@ -71,12 +71,17 @@ export function StoreProvider({ children }) {
 
         const savedAddr = localStorage.getItem('tss_addresses');
         if (savedAddr) {
-          setSavedAddresses(JSON.parse(savedAddr));
+          const parsedAddr = JSON.parse(savedAddr);
+          // Remove old hardcoded default address (Ayush Sharma) if it exists
+          const filtered = parsedAddr.filter(a => a.id !== 'addr_default');
+          setSavedAddresses(filtered.length > 0 ? filtered : []);
         } else if (parsed.addresses && parsed.addresses.length > 0) {
           setSavedAddresses(parsed.addresses);
         }
       } else {
-        // Guest user: no default saved address
+        // Guest user: clear any stale address/user data
+        localStorage.removeItem('tss_addresses');
+        localStorage.removeItem('tss_user');
         setSavedAddresses([]);
       }
     } catch (e) {}
