@@ -12,6 +12,7 @@ export default function Header() {
     setCurrency,
     cart,
     wishlist,
+    activeCategory,
     setActiveCategory,
     searchQuery,
     setSearchQuery,
@@ -58,6 +59,28 @@ export default function Header() {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  const handleNavCategoryClick = (cat) => {
+    if (cat === 'footwear') {
+      setCurrentGender('footwear');
+      setActiveCategory('all');
+      showToast('Showing Streetwear Kicks & Sneakers 👟');
+    } else {
+      if (currentGender === 'footwear') {
+        setCurrentGender('men');
+      }
+      setActiveCategory(cat);
+      const catNames = {
+        all: 'All Drops',
+        oversized: 'Oversized T-Shirts 🔥',
+        hoodies: 'Hoodies & Sweatshirts',
+        bottoms: 'Cargos & Joggers',
+        jackets: 'Bombers & Jackets'
+      };
+      showToast(`Showing ${catNames[cat] || cat}`);
+    }
+    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <>
@@ -135,12 +158,42 @@ export default function Header() {
 
           {/* Navigation Links */}
           <nav className="tss-nav-menu">
-            <span className="tss-nav-item" onClick={() => setActiveCategory('all')}>ALL DROPS</span>
-            <span className="tss-nav-item badge-hot-link" onClick={() => setActiveCategory('oversized')}>🔥 OVERSIZED</span>
-            <span className="tss-nav-item" onClick={() => setActiveCategory('hoodies')}>HOODIES</span>
-            <span className="tss-nav-item" onClick={() => setActiveCategory('bottoms')}>CARGOS</span>
-            <span className="tss-nav-item" onClick={() => setActiveCategory('jackets')}>JACKETS</span>
-            <span className="tss-nav-item" onClick={() => setActiveCategory('footwear')}>KICKS</span>
+            <span
+              className={`tss-nav-item ${activeCategory === 'all' && currentGender !== 'footwear' ? 'active' : ''}`}
+              onClick={() => handleNavCategoryClick('all')}
+            >
+              ALL DROPS
+            </span>
+            <span
+              className={`tss-nav-item badge-hot-link ${activeCategory === 'oversized' ? 'active' : ''}`}
+              onClick={() => handleNavCategoryClick('oversized')}
+            >
+              🔥 OVERSIZED
+            </span>
+            <span
+              className={`tss-nav-item ${activeCategory === 'hoodies' ? 'active' : ''}`}
+              onClick={() => handleNavCategoryClick('hoodies')}
+            >
+              HOODIES
+            </span>
+            <span
+              className={`tss-nav-item ${activeCategory === 'bottoms' ? 'active' : ''}`}
+              onClick={() => handleNavCategoryClick('bottoms')}
+            >
+              CARGOS
+            </span>
+            <span
+              className={`tss-nav-item ${activeCategory === 'jackets' ? 'active' : ''}`}
+              onClick={() => handleNavCategoryClick('jackets')}
+            >
+              JACKETS
+            </span>
+            <span
+              className={`tss-nav-item ${currentGender === 'footwear' || activeCategory === 'footwear' ? 'active' : ''}`}
+              onClick={() => handleNavCategoryClick('footwear')}
+            >
+              KICKS
+            </span>
           </nav>
 
           {/* Search Box with Autocomplete */}

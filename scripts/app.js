@@ -219,10 +219,47 @@ const App = {
   },
 
   filterByCategory(catId) {
-    this.activeCategory = catId;
+    if (catId === 'footwear') {
+      this.currentGender = 'footwear';
+      this.activeCategory = 'all';
+      document.querySelectorAll('.gender-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gender === 'footwear');
+      });
+      this.showToast('Showing Streetwear Kicks & Sneakers 👟', 'info');
+    } else {
+      if (this.currentGender === 'footwear') {
+        this.currentGender = 'men';
+        document.querySelectorAll('.gender-tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.gender === 'men');
+        });
+      }
+      this.activeCategory = catId;
+      const catNames = {
+        all: 'All Drops',
+        oversized: 'Oversized T-Shirts 🔥',
+        hoodies: 'Hoodies & Sweatshirts',
+        bottoms: 'Cargos & Joggers',
+        jackets: 'Bombers & Jackets'
+      };
+      this.showToast(`Showing ${catNames[catId] || catId}`, 'info');
+    }
+
+    // Highlight nav items
+    document.querySelectorAll('.tss-nav-item').forEach(item => {
+      const match = item.getAttribute('data-cat') === catId ||
+        (catId === 'footwear' && item.textContent.trim().toUpperCase().includes('KICKS')) ||
+        (catId === 'all' && item.textContent.trim().toUpperCase().includes('ALL DROPS')) ||
+        (catId === 'oversized' && item.textContent.trim().toUpperCase().includes('OVERSIZED')) ||
+        (catId === 'hoodies' && item.textContent.trim().toUpperCase().includes('HOODIES')) ||
+        (catId === 'bottoms' && item.textContent.trim().toUpperCase().includes('CARGOS')) ||
+        (catId === 'jackets' && item.textContent.trim().toUpperCase().includes('JACKETS'));
+      item.classList.toggle('active', match);
+    });
+
     document.querySelectorAll('.quick-chip').forEach(chip => {
       chip.classList.toggle('active', chip.dataset.cat === catId);
     });
+
     this.renderCatalog();
     const catalogSec = document.getElementById('catalog-section');
     if (catalogSec) catalogSec.scrollIntoView({ behavior: 'smooth' });

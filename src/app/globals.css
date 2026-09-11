@@ -248,6 +248,12 @@ img {
   color: var(--tss-red);
 }
 
+.tss-nav-item.active {
+  color: var(--tss-red) !important;
+  border-bottom: 2.5px solid var(--tss-red);
+  padding-bottom: 2px;
+}
+
 .tss-nav-item.badge-hot-link {
   color: var(--tss-red);
   display: flex;
