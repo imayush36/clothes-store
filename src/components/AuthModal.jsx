@@ -4,9 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 
 export default function AuthModal() {
-  const { isAuthModalOpen, setIsAuthModalOpen, user, login, register, logout, showToast } = useStore();
+  const { isAuthModalOpen, setIsAuthModalOpen, user, login, register, logout, showToast, authModalTab } = useStore();
 
   const [tab, setTab] = useState('login'); // 'login', 'register', 'forgot'
+
+  useEffect(() => {
+    if (isAuthModalOpen && authModalTab) {
+      setTab(authModalTab);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+    }
+  }, [isAuthModalOpen, authModalTab]);
   
   // Login / Register state
   const [name, setName] = useState('');

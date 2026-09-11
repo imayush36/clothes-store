@@ -12,8 +12,8 @@ function generateTrackingNumber() {
 router.post('/', (req, res) => {
   const { customerName, customerEmail, customerAddress, items, subtotal, discount, finalTotal, paymentMethod } = req.body;
 
-  if (!customerName || !customerEmail || !customerAddress || !items || items.length === 0) {
-    return res.status(400).json({ error: 'Missing required order details' });
+  if (!customerName || !customerEmail || !customerEmail.includes('@') || !customerAddress || !items || items.length === 0) {
+    return res.status(401).json({ error: 'Authentication required: User account details are required to place an order' });
   }
 
   const trackingNumber = generateTrackingNumber();

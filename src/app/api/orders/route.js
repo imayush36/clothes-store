@@ -15,8 +15,8 @@ export async function POST(request) {
     const body = await request.json();
     const { customerName, customerEmail, customerAddress, items, subtotal, discount, finalTotal, paymentMethod } = body;
 
-    if (!customerName || !customerEmail || !items || items.length === 0) {
-      return NextResponse.json({ error: 'Missing required order details' }, { status: 400 });
+    if (!customerName || !customerEmail || !customerEmail.includes('@') || !items || items.length === 0) {
+      return NextResponse.json({ error: 'Authentication required: Valid registered account name, email, and cart items are required to place an order.' }, { status: 401 });
     }
 
     const trackingNumber = generateTrackingNumber();

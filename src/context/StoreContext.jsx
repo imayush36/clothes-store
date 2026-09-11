@@ -23,7 +23,13 @@ export function StoreProvider({ children }) {
   const [user, setUser] = useState(null);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('login'); // 'login' or 'register'
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+  const openAuthModal = (initialTab = 'login') => {
+    setAuthModalTab(initialTab);
+    setIsAuthModalOpen(true);
+  };
 
   // Modals & Drawers State
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -62,28 +68,16 @@ export function StoreProvider({ children }) {
         const parsed = JSON.parse(savedUser);
         setUser(parsed);
         if (parsed.isClubMember) setIsClubMember(true);
-      }
 
-      const savedAddr = localStorage.getItem('tss_addresses');
-      if (savedAddr) {
-        setSavedAddresses(JSON.parse(savedAddr));
+        const savedAddr = localStorage.getItem('tss_addresses');
+        if (savedAddr) {
+          setSavedAddresses(JSON.parse(savedAddr));
+        } else if (parsed.addresses && parsed.addresses.length > 0) {
+          setSavedAddresses(parsed.addresses);
+        }
       } else {
-        // Default sample delivery address
-        setSavedAddresses([
-          {
-            id: 'addr_default',
-            fullName: 'Ayush Sharma',
-            phone: '9876543210',
-            pincode: '400050',
-            houseNo: 'Flat 402, Sea Breeze Apts',
-            street: 'Linking Road, Bandra West',
-            landmark: 'Near Bandra Station',
-            city: 'Mumbai',
-            state: 'Maharashtra',
-            addressType: 'HOME',
-            isDefault: true
-          }
-        ]);
+        // Guest user: no default saved address
+        setSavedAddresses([]);
       }
     } catch (e) {}
   }, []);
@@ -162,6 +156,11 @@ export function StoreProvider({ children }) {
 
   const logout = () => {
     setUser(null);
+    setSavedAddresses([]);
+    try {
+      localStorage.removeItem('tss_user');
+      localStorage.removeItem('tss_addresses');
+    } catch (e) {}
     showToast('Logged out successfully.', 'info');
   };
 
@@ -341,6 +340,9 @@ export function StoreProvider({ children }) {
         setDefaultAddress,
         isAuthModalOpen,
         setIsAuthModalOpen,
+        authModalTab,
+        setAuthModalTab,
+        openAuthModal,
         isAddressModalOpen,
         setIsAddressModalOpen,
         // Modals & Drawers

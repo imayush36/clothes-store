@@ -14,7 +14,10 @@ export default function CartDrawer() {
     appliedDiscount,
     promoDiscountAmount,
     setIsCheckoutOpen,
-    setActiveCategory
+    setActiveCategory,
+    user,
+    openAuthModal,
+    showToast
   } = useStore();
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -144,6 +147,11 @@ export default function CartDrawer() {
               className="btn-tss-primary"
               style={{ width: '100%', marginTop: 14, padding: 15, fontSize: '0.95rem', justifyContent: 'center' }}
               onClick={() => {
+                if (!user) {
+                  showToast('Please login or create an account to proceed to checkout! 🔐', 'warning');
+                  openAuthModal('login');
+                  return;
+                }
                 setIsCartOpen(false);
                 setIsCheckoutOpen(true);
               }}

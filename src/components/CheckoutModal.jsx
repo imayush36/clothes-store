@@ -20,7 +20,8 @@ export default function CheckoutModal() {
     user,
     savedAddresses,
     addAddress,
-    showToast
+    showToast,
+    openAuthModal
   } = useStore();
 
   const [selectedAddrId, setSelectedAddrId] = useState(null);
@@ -42,23 +43,36 @@ export default function CheckoutModal() {
   const [orderConfirmed, setOrderConfirmed] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Set default address on open
+  // Sync user info and default address on open
   useEffect(() => {
-    if (savedAddresses.length > 0) {
-      const def = savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
-      setSelectedAddrId(def.id);
-      setName(def.fullName);
-      setPhone(def.phone);
-      setPincode(def.pincode);
-      setHouseNo(def.houseNo);
-      setStreet(def.street);
-      setCity(def.city);
-      setState(def.state);
-      setPinValidation(lookupPincode(def.pincode));
-    } else if (user) {
-      setName(user.name);
-      setEmail(user.email);
-      setPhone(user.phone);
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+
+      if (savedAddresses.length > 0) {
+        const def = savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+        setSelectedAddrId(def.id);
+        setName(def.fullName || user.name || '');
+        setPhone(def.phone || user.phone || '');
+        setPincode(def.pincode || '');
+        setHouseNo(def.houseNo || '');
+        setStreet(def.street || '');
+        setCity(def.city || '');
+        setState(def.state || '');
+        setPinValidation(lookupPincode(def.pincode));
+      }
+    } else {
+      setName('');
+      setEmail('');
+      setPhone('');
+      setSelectedAddrId(null);
+      setPincode('');
+      setHouseNo('');
+      setStreet('');
+      setCity('');
+      setState('');
+      setPinValidation(null);
     }
   }, [savedAddresses, user, isCheckoutOpen]);
 
@@ -129,6 +143,18 @@ export default function CheckoutModal() {
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
 
+    if (!user) {
+      showToast('Please login or create an account to place an order! 🔐', 'warning');
+      setIsCheckoutOpen(false);
+      openAuthModal('login');
+      return;
+    }
+
+    if (!email || !email.includes('@')) {
+      showToast('Please enter a valid email address for your order receipt.', 'warning');
+      return;
+    }
+
     if (!pincode || pincode.length !== 6) {
       showToast('Please enter a valid 6-digit delivery PIN code.', 'info');
       return;
@@ -139,8 +165,9 @@ export default function CheckoutModal() {
     const fullAddressString = `${houseNo}, ${street}, ${city}, ${state} - PIN: ${pincode} (Mobile: ${phone})`;
 
     const orderPayload = {
-      customerName: name,
-      customerEmail: email || user?.email || 'customer@thesouledstore.com',
+      customerId: user.id || user._id,
+      customerName: name.trim() || user.name,
+      customerEmail: email.trim(),
       customerAddress: fullAddressString,
       items: cart,
       subtotal,
@@ -224,6 +251,72 @@ export default function CheckoutModal() {
               </button>
               <button className="btn-tss-primary" onClick={handleClose}>
                 CONTINUE SHOPPING →
+              </button>
+            </div>
+          </div>
+        ) : !user ? (
+          <div style={{ textAlign: 'center', padding: '36px 16px' }}>
+            <div style={{ fontSize: '3.6rem', marginBottom: 14 }}>🔐</div>
+            <span style={{
+              display: 'inline-block',
+              background: 'rgba(225, 27, 35, 0.1)',
+              color: 'var(--tss-red)',
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 900,
+              fontSize: '0.78rem',
+              padding: '4px 14px',
+              borderRadius: '20px',
+              marginBottom: 12,
+              letterSpacing: '0.5px'
+            }}>
+              LOGIN / REGISTRATION REQUIRED
+            </span>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 10 }}>
+              Please Login or Create an ID to Order
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: 480, margin: '0 auto 24px', fontSize: '0.92rem', lineHeight: 1.55 }}>
+              Orders cannot be placed without an account. Please sign in or create an account to save your delivery addresses, access member discounts, and track your package in real time.
+            </p>
+
+            <div style={{
+              background: 'var(--bg-secondary)',
+              border: '1px dashed var(--tss-border)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '16px 22px',
+              maxWidth: 420,
+              margin: '0 auto 26px',
+              textAlign: 'left'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', marginBottom: 6 }}>
+                <span>Items in Bag:</span>
+                <b>{cart.reduce((sum, item) => sum + item.quantity, 0)} item(s)</b>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', fontWeight: 900 }}>
+                <span>Total Payable:</span>
+                <b style={{ color: 'var(--tss-red)' }}>{formatPrice(finalTotal)}</b>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                className="btn-tss-primary"
+                style={{ padding: '13px 28px', fontSize: '0.95rem' }}
+                onClick={() => {
+                  setIsCheckoutOpen(false);
+                  openAuthModal('login');
+                }}
+              >
+                🔑 Login to TSS Account
+              </button>
+              <button
+                className="btn-tss-outline"
+                style={{ padding: '13px 28px', fontSize: '0.95rem' }}
+                onClick={() => {
+                  setIsCheckoutOpen(false);
+                  openAuthModal('register');
+                }}
+              >
+                ✨ Create New Account / ID
               </button>
             </div>
           </div>
@@ -382,17 +475,28 @@ export default function CheckoutModal() {
 
                 {/* 2. Contact Email */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: 4 }}>
-                    2. Order Receipt Email
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 800 }}>
+                      2. Order Receipt Email
+                    </label>
+                    {user?.email && (
+                      <span style={{ fontSize: '0.72rem', color: '#1b8755', fontWeight: 800 }}>
+                        ✓ Logged in as: {user.email}
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="email"
+                    name="order_receipt_email"
                     className="tss-search-input"
-                    placeholder="name@example.com"
+                    placeholder="Enter your email address (e.g. name@example.com)"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
+                  <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                    Order confirmation, invoice, and courier live tracking updates will be dispatched to this email.
+                  </div>
                 </div>
 
                 {/* 3. Payment Method */}

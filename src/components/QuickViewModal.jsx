@@ -12,7 +12,9 @@ export default function QuickViewModal() {
     addToCart,
     setIsCheckoutOpen,
     setIsFitQuizOpen,
-    showToast
+    showToast,
+    user,
+    openAuthModal
   } = useStore();
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -201,7 +203,12 @@ export default function QuickViewModal() {
                 onClick={() => {
                   addToCart(product, activeSize, activeColor, false);
                   handleClose();
-                  setIsCheckoutOpen(true);
+                  if (!user) {
+                    showToast('Please login or create an account to proceed to checkout! 🔐', 'warning');
+                    openAuthModal('login');
+                  } else {
+                    setIsCheckoutOpen(true);
+                  }
                 }}
               >
                 BUY NOW ⚡
