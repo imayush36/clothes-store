@@ -206,11 +206,7 @@ export default function Header() {
 
           {/* Header Actions */}
           <div className="tss-header-actions">
-            {/* VIP Club Membership Pill */}
-            <button className="tss-club-vip-pill" onClick={toggleClubMembership}>
-              <span>👑</span>
-              <span>{isClubMember ? 'VIP CLUB ACTIVE ✨' : 'JOIN CLUB'}</span>
-            </button>
+
 
             {/* User Account / Login Button */}
             <button
