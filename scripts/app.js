@@ -155,6 +155,8 @@ const App = {
 
     this.renderCatalog();
     this.showToast(`Showing ${gender.toUpperCase()} Collection`, 'info');
+    const catalogSec = document.getElementById('catalog-section');
+    if (catalogSec) catalogSec.scrollIntoView({ behavior: 'smooth' });
   },
 
   // VIP Club Membership Toggle

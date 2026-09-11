@@ -71,6 +71,7 @@ export default function Header() {
                 setCurrentGender('men');
                 setActiveCategory('all');
                 showToast("Showing Men's Collection");
+                document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
               MEN
@@ -81,6 +82,7 @@ export default function Header() {
                 setCurrentGender('women');
                 setActiveCategory('all');
                 showToast("Showing Women's Collection");
+                document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
               WOMEN
@@ -91,6 +93,7 @@ export default function Header() {
                 setCurrentGender('footwear');
                 setActiveCategory('footwear');
                 showToast("Showing Sneakers Collection 👟");
+                document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
               SNEAKERS 👟
@@ -107,8 +110,7 @@ export default function Header() {
             <button className="top-nav-link-btn" onClick={() => setIsTrackOrderOpen(true)}>
               <span>🚚</span> Track Order
             </button>
-
-
+          </div>
         </div>
       </div>
 
