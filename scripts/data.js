@@ -520,5 +520,150 @@ const PRODUCTS = [
     reviews: [
       { user: 'Megha S.', rating: 5, date: '3 days ago', comment: 'Most comfortable cargos ever. Pockets are actual functional pockets!' }
     ]
+  },
+  {
+    id: 'prod-17',
+    name: 'Demon Slayer: Nezuko Kamado Boxy Crop Tee',
+    gender: 'women',
+    category: 'oversized',
+    fandom: 'anime',
+    fandomTag: 'Official Anime Merch',
+    price: 1299,
+    originalPrice: 1799,
+    clubPrice: 999,
+    rating: 4.9,
+    reviewCount: 460,
+    badge: 'NEW DROP',
+    fitType: 'BOXY OVERSIZED CROP',
+    fabric: '240 GSM 100% Combed Cotton',
+    stockStatus: 'In Stock',
+    description: 'Pastel blossom pink with vintage anime kanji typography and Demon Slayer bamboo motif on heavyweight soft cotton.',
+    colors: [
+      { name: 'Blossom Pink', hex: '#f4c2c2', image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80' }
+    ],
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    images: [
+      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80'
+    ],
+    tryonType: 'top',
+    reviews: [
+      { user: 'Kavya R.', rating: 5, date: '1 day ago', comment: 'The print is vibrant and the crop length is just right!' }
+    ]
+  },
+  {
+    id: 'prod-18',
+    name: 'Tokyo Revengers: Valhalla Cropped Bomber Jacket',
+    gender: 'women',
+    category: 'jackets',
+    fandom: 'anime',
+    fandomTag: 'Official Anime Merch',
+    price: 2699,
+    originalPrice: 3599,
+    clubPrice: 2099,
+    rating: 4.8,
+    reviewCount: 310,
+    badge: 'EXCLUSIVE',
+    fitType: 'CROPPED STREETWEAR',
+    fabric: 'Satin Twill with Quilted Thermal Lining',
+    stockStatus: 'In Stock',
+    description: 'Statement street bomber jacket with embroidered back patch, ribbed hem & cuffs, and metallic custom zipper.',
+    colors: [
+      { name: 'Pure White & Gold', hex: '#f8f8f8', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=900&q=80' }
+    ],
+    sizes: ['XS', 'S', 'M', 'L'],
+    images: [
+      'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=900&q=80'
+    ],
+    tryonType: 'outerwear',
+    reviews: [
+      { user: 'Simran K.', rating: 5, date: '4 days ago', comment: 'Looks so edgy! Got compliments the entire evening.' }
+    ]
+  },
+  {
+    id: 'prod-19',
+    name: 'Cozy Ribbed Knit Cropped Zip Sweater',
+    gender: 'women',
+    category: 'hoodies',
+    fandom: 'tss',
+    fandomTag: 'TSS Originals',
+    price: 1899,
+    originalPrice: 2599,
+    clubPrice: 1499,
+    rating: 4.9,
+    reviewCount: 280,
+    badge: 'WINTER EDIT',
+    fitType: 'RELAXED KNIT',
+    fabric: 'Wool-Cotton Blend Heavy Rib Knit',
+    stockStatus: 'In Stock',
+    description: 'Super soft chunky knit sweater with silver two-way zipper, mock collar, and relaxed drop sleeves.',
+    colors: [
+      { name: 'Mocha Cream', hex: '#a28879', image: 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=900&q=80' }
+    ],
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    images: [
+      'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=900&q=80'
+    ],
+    tryonType: 'outerwear',
+    reviews: [
+      { user: 'Disha B.', rating: 5, date: '2 days ago', comment: 'Quality is like Zara but half the price. Super cozy!' }
+    ]
+  },
+  {
+    id: 'prod-20',
+    name: 'Cyberpunk 2026 Neon Low-Top Street Runners',
+    gender: 'unisex',
+    category: 'footwear',
+    fandom: 'tss',
+    fandomTag: 'TSS Kicks',
+    price: 3499,
+    originalPrice: 4999,
+    clubPrice: 2799,
+    rating: 4.9,
+    reviewCount: 420,
+    badge: 'LIMITED DROP',
+    fitType: 'TRUE TO SIZE',
+    fabric: 'Breathable Mesh, TPU Cage & EVA Cushioned Midsole',
+    stockStatus: 'In Stock',
+    description: 'Futuristic chunky street runners featuring reflective 3M accents, responsive cloud-foam sole, and anti-slip tread pattern.',
+    colors: [
+      { name: 'Neon Cyber Volt', hex: '#202020', image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=900&q=80' }
+    ],
+    sizes: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'],
+    images: [
+      'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=900&q=80'
+    ],
+    tryonType: 'shoes',
+    reviews: [
+      { user: 'Vikram S.', rating: 5, date: '3 days ago', comment: 'Super bouncy foam. Wore it to college all day with zero heel pain.' }
+    ]
+  },
+  {
+    id: 'prod-21',
+    name: 'Anime Edition: Akatsuki Cloud Shadow High-Tops',
+    gender: 'unisex',
+    category: 'footwear',
+    fandom: 'anime',
+    fandomTag: 'Official Anime Merch',
+    price: 3799,
+    originalPrice: 5299,
+    clubPrice: 2999,
+    rating: 5.0,
+    reviewCount: 780,
+    badge: 'TOP RATED',
+    fitType: 'HIGH TOP',
+    fabric: 'Full-Grain Vegan Leather & Vulcanized Rubber Sole',
+    stockStatus: 'In Stock (Only 2 left)',
+    description: 'Iconic red cloud embroidery on pitch black high-top silhouette with padded collar and extra lace set.',
+    colors: [
+      { name: 'Akatsuki Black & Crimson', hex: '#000000', image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=900&q=80' }
+    ],
+    sizes: ['UK 7', 'UK 8', 'UK 9', 'UK 10'],
+    images: [
+      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=900&q=80'
+    ],
+    tryonType: 'shoes',
+    reviews: [
+      { user: 'Rohan N.', rating: 5, date: '1 week ago', comment: 'Absolute masterpiece for Naruto fans. Packaging is 10/10.' }
+    ]
   }
 ];

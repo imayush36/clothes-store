@@ -29,9 +29,9 @@ router.get('/', (req, res) => {
 
   if (gender && gender !== 'all') {
     if (gender === 'men') {
-      query += ' AND (gender = "men" OR gender IS NULL)';
+      query += ' AND (gender = "men" OR gender IS NULL) AND category != "footwear"';
     } else if (gender === 'women') {
-      query += ' AND gender = "women"';
+      query += ' AND gender = "women" AND category != "footwear"';
     } else if (gender === 'footwear') {
       query += ' AND category = "footwear"';
     }

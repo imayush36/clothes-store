@@ -57,8 +57,8 @@ export default function ProductGrid() {
 
     function applyClientFilter() {
       let filtered = PRODUCTS.filter((prod) => {
-        if (currentGender === 'women' && prod.gender !== 'women') return false;
-        if (currentGender === 'men' && prod.gender === 'women') return false;
+        if (currentGender === 'women' && (prod.gender !== 'women' || prod.category === 'footwear')) return false;
+        if (currentGender === 'men' && (prod.gender === 'women' || prod.category === 'footwear')) return false;
         if (currentGender === 'footwear' && prod.category !== 'footwear') return false;
         if (activeCategory !== 'all' && prod.category !== activeCategory) return false;
         if (activeFandom !== 'all' && prod.fandom !== activeFandom) return false;
@@ -93,20 +93,20 @@ export default function ProductGrid() {
 
             <div className="quick-cat-pills-bar">
               {['all', 'oversized', 'hoodies', 'bottoms', 'jackets', 'footwear'].map((cat) => (
-                <span
+                <button
                   key={cat}
-                  className={`quick-chip ${activeCategory === cat ? 'active' : ''}`}
+                  className={`quick-cat-pill ${activeCategory === cat ? 'active' : ''}`}
                   onClick={() => setActiveCategory(cat)}
                 >
-                  {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </span>
+                  {cat.toUpperCase()}
+                </button>
               ))}
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div className="sort-wrapper-top">
-              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-secondary)' }}>SORT:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)' }}>SORT:</span>
               <select className="sort-select-top" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                 <option value="featured">Popularity & Drops</option>
                 <option value="price-low">Price: Low to High</option>
@@ -115,7 +115,7 @@ export default function ProductGrid() {
               </select>
             </div>
             <span className="results-count-badge" id="results-count">
-              {currentGender.toUpperCase()}'S APPAREL ({products.length} ITEMS)
+              {currentGender === 'footwear' ? 'SNEAKERS COLLECTION' : `${currentGender.toUpperCase()}'S APPAREL`} ({products.length} ITEMS)
             </span>
           </div>
         </div>

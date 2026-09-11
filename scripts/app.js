@@ -236,8 +236,8 @@ const App = {
 
     let filtered = PRODUCTS.filter(prod => {
       // Gender filter
-      if (this.currentGender === 'women' && prod.gender !== 'women') return false;
-      if (this.currentGender === 'men' && prod.gender === 'women') return false;
+      if (this.currentGender === 'women' && (prod.gender !== 'women' || prod.category === 'footwear')) return false;
+      if (this.currentGender === 'men' && (prod.gender === 'women' || prod.category === 'footwear')) return false;
       if (this.currentGender === 'footwear' && prod.category !== 'footwear') return false;
 
       // Category filter

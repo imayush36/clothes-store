@@ -36,11 +36,24 @@ export async function GET(request) {
   try {
     const mongo = await connectMongo();
     if (mongo) {
+      const mongoCount = await Product.countDocuments();
+      if (mongoCount < PRODUCTS.length) {
+        for (const p of PRODUCTS) {
+          await Product.updateOne({ id: p.id }, { $set: p }, { upsert: true });
+        }
+      }
+
       const filter = {};
       if (gender && gender !== 'all') {
-        if (gender === 'men') filter.gender = { $in: ['men', null] };
-        else if (gender === 'women') filter.gender = 'women';
-        else if (gender === 'footwear') filter.category = 'footwear';
+        if (gender === 'men') {
+          filter.gender = { $in: ['men', null] };
+          filter.category = { $ne: 'footwear' };
+        } else if (gender === 'women') {
+          filter.gender = 'women';
+          filter.category = { $ne: 'footwear' };
+        } else if (gender === 'footwear') {
+          filter.category = 'footwear';
+        }
       }
       if (category && category !== 'all') filter.category = category;
       if (fandom && fandom !== 'all') filter.fandom = fandom;
@@ -74,9 +87,13 @@ export async function GET(request) {
     const params = [];
 
     if (gender && gender !== 'all') {
-      if (gender === 'men') query += ' AND (gender = "men" OR gender IS NULL)';
-      else if (gender === 'women') query += ' AND gender = "women"';
-      else if (gender === 'footwear') query += ' AND category = "footwear"';
+      if (gender === 'men') {
+        query += ' AND (gender = "men" OR gender IS NULL) AND category != "footwear"';
+      } else if (gender === 'women') {
+        query += ' AND gender = "women" AND category != "footwear"';
+      } else if (gender === 'footwear') {
+        query += ' AND category = "footwear"';
+      }
     }
 
     if (category && category !== 'all') {
@@ -106,8 +123,16 @@ export async function GET(request) {
     else query += ' ORDER BY id ASC';
 
     db.all(query, params, (err, rows) => {
-      if (err || !rows || rows.length === 0) {
-        return resolve(NextResponse.json({ count: PRODUCTS.length, products: PRODUCTS, source: 'fallback' }));
+      if (err || !rows) {
+        const filteredFallback = PRODUCTS.filter((prod) => {
+          if (gender === 'women' && prod.gender !== 'women') return false;
+          if (gender === 'men' && (prod.gender === 'women' || prod.category === 'footwear')) return false;
+          if (gender === 'footwear' && prod.category !== 'footwear') return false;
+          if (category && category !== 'all' && prod.category !== category) return false;
+          if (fandom && fandom !== 'all' && prod.fandom !== fandom) return false;
+          return true;
+        });
+        return resolve(NextResponse.json({ count: filteredFallback.length, products: filteredFallback, source: 'fallback' }));
       }
       const formatted = rows.map(formatProduct);
       resolve(NextResponse.json({ count: formatted.length, products: formatted, source: 'sqlite' }));
