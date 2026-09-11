@@ -108,28 +108,7 @@ export default function Header() {
               <span>🚚</span> Track Order
             </button>
 
-            {/* Currency */}
-            <select
-              className="top-currency-select"
-              value={currency}
-              onChange={(e) => {
-                setCurrency(e.target.value);
-                showToast(`Currency set to ${e.target.value}`);
-              }}
-            >
-              <option value="INR">🇮🇳 INR (₹)</option>
-              <option value="USD">🇺🇸 USD ($)</option>
-              <option value="EUR">🇪🇺 EUR (€)</option>
-              <option value="GBP">🇬🇧 GBP (£)</option>
-            </select>
 
-            {/* Theme */}
-            <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Dark/Light Mode">
-              {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
-            </button>
-
-            <span className="free-shipping-tag">📦 Free Express Shipping</span>
-          </div>
         </div>
       </div>
 
